@@ -4,6 +4,7 @@ use crate::utils::jwt::JwtConfig;
 use utoipa::OpenApi;
 use utoipa_axum::{router::OpenApiRouter, routes};
 
+pub mod google;
 pub mod login;
 pub mod signup;
 pub mod types;
@@ -12,7 +13,12 @@ use types::AuthResponse;
 
 #[derive(OpenApi)]
 #[openapi(
-    paths(login::post_login, signup::post_signup),
+    paths(
+        google::get_google_callback,
+        google::get_google_login,
+        login::post_login,
+        signup::post_signup
+    ),
     components(schemas(
         types::AuthResponse,
         types::LoginRequest,
@@ -26,6 +32,8 @@ struct AuthDoc;
 
 pub fn get_openapi() -> OpenApiRouter<crate::AppState> {
     OpenApiRouter::with_openapi(AuthDoc::openapi())
+        .routes(routes!(google::get_google_login))
+        .routes(routes!(google::get_google_callback))
         .routes(routes!(login::post_login))
         .routes(routes!(signup::post_signup))
 }

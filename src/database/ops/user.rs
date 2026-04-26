@@ -23,3 +23,15 @@ pub fn get_user_by_id(conn: &mut DbConnection, id: &uuid::Uuid) -> QueryResult<U
 pub fn get_user_by_email(conn: &mut DbConnection, email: &str) -> QueryResult<User> {
     users.filter(user_email.eq(email)).first(conn)
 }
+
+pub fn get_or_create_user_by_email(
+    conn: &mut DbConnection,
+    name: &str,
+    email: &str,
+) -> QueryResult<User> {
+    match get_user_by_email(conn, email) {
+        Ok(user) => Ok(user),
+        Err(diesel::result::Error::NotFound) => create_user(conn, name, email),
+        Err(error) => Err(error),
+    }
+}

@@ -31,3 +31,8 @@ target
 frontend/node_modules
 frontend/dist
 frontend/.vite
+
+# Local Postgres test cluster
+.postgres-test
+
+.env

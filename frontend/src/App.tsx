@@ -4,6 +4,7 @@ import nexusLogo from "./assets/nexus_logo_professional.png";
 import DashboardPage from "./pages/dashboard/DashboardPage";
 import LandingPage from "./pages/landing/LandingPage";
 import LoginPage from "./pages/login/LoginPage";
+import SignupPage from "./pages/signup/SignupPage";
 
 type HealthState = "checking" | "online" | "offline";
 type PageKey = "landing" | "dashboard" | "login" | "signup";
@@ -57,6 +58,29 @@ function loadStoredSession(): AuthSession | null {
     window.localStorage.removeItem(authStorageKey);
     return null;
   }
+}
+
+function authResponseFromCallbackHash(hash: string): AuthResponse | null {
+  const params = new URLSearchParams(hash.replace(/^#/, ""));
+  const token = params.get("token");
+  const expiresIn = Number(params.get("expires_in"));
+  const user: ApiUser = {
+    id: params.get("user_id") || "",
+    name: params.get("user_name") || "",
+    email: params.get("user_email") || "",
+    created_at: params.get("user_created_at") || ""
+  };
+
+  if (!token || !Number.isFinite(expiresIn) || expiresIn <= 0 || !user.id) {
+    return null;
+  }
+
+  return {
+    token,
+    token_type: "Bearer",
+    expires_in: expiresIn,
+    user
+  };
 }
 
 function App() {
@@ -143,6 +167,20 @@ function App() {
     setSession(null);
   }, []);
 
+  useEffect(() => {
+    if (window.location.pathname !== "/auth/callback") {
+      return;
+    }
+
+    const auth = authResponseFromCallbackHash(window.location.hash);
+
+    if (auth) {
+      handleAuthenticated(auth);
+    } else {
+      navigate("/login", "login");
+    }
+  }, [handleAuthenticated, navigate]);
+
   return (
     <main className="app-shell">
       <header className="app-header">
@@ -209,9 +247,14 @@ function App() {
           token={session?.token ?? null}
         />
       )}
-      {(page === "login" || page === "signup") && (
+      {page === "login" && (
         <LoginPage
-          mode={page}
+          onAuthenticated={handleAuthenticated}
+          onNavigate={navigate}
+        />
+      )}
+      {page === "signup" && (
+        <SignupPage
           onAuthenticated={handleAuthenticated}
           onNavigate={navigate}
         />

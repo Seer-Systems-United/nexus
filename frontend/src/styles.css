@@ -276,6 +276,18 @@ h2 {
   background: #f7fafc;
 }
 
+.button.google {
+  width: 100%;
+  color: var(--nexus-navy-dark);
+  border-color: var(--nexus-line);
+  background: #ffffff;
+}
+
+.button.google:hover {
+  border-color: rgba(0, 45, 95, 0.36);
+  background: #f7fafc;
+}
+
 .signal-panel,
 .dashboard-grid {
   display: grid;
@@ -514,6 +526,22 @@ h2 {
   background: #fff6f7;
   font-size: 14px;
   font-weight: 800;
+}
+
+.form-separator {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  color: var(--nexus-gray-dark);
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.form-separator span {
+  height: 1px;
+  background: var(--nexus-line);
 }
 
 .login-panel .button {

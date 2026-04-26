@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
-import { ApiRequestError, type AuthResponse, login } from "../../api/client";
+import { ApiRequestError, type AuthResponse, signup } from "../../api/client";
 
-type LoginPageProps = {
+type SignupPageProps = {
   onAuthenticated: (auth: AuthResponse) => void;
   onNavigate: (
     href: string,
@@ -9,7 +9,8 @@ type LoginPageProps = {
   ) => void;
 };
 
-function LoginPage({ onAuthenticated, onNavigate }: LoginPageProps) {
+function SignupPage({ onAuthenticated, onNavigate }: SignupPageProps) {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -21,14 +22,13 @@ function LoginPage({ onAuthenticated, onNavigate }: LoginPageProps) {
     setIsSubmitting(true);
 
     try {
-      const auth = await login({ email, password });
-
+      const auth = await signup({ name, email, password });
       onAuthenticated(auth);
     } catch (requestError) {
       if (requestError instanceof ApiRequestError) {
         setError(requestError.message);
       } else {
-        setError("Unable to complete the request");
+        setError("Unable to create account");
       }
     } finally {
       setIsSubmitting(false);
@@ -36,13 +36,27 @@ function LoginPage({ onAuthenticated, onNavigate }: LoginPageProps) {
   };
 
   return (
-    <section className="login-page" aria-labelledby="login-title">
+    <section className="login-page" aria-labelledby="signup-title">
       <form className="login-panel" onSubmit={handleSubmit}>
         <p className="eyebrow">Secure Access</p>
         <div className="form-heading">
-          <h1 id="login-title">Operator Login</h1>
-          <p>Sign in to continue to the dashboard.</p>
+          <h1 id="signup-title">Create Account</h1>
+          <p>Register a Nexus operator account.</p>
         </div>
+
+        <label>
+          Name
+          <input
+            autoComplete="name"
+            name="name"
+            onChange={(event) => {
+              setName(event.target.value);
+            }}
+            required
+            type="text"
+            value={name}
+          />
+        </label>
 
         <label>
           Email
@@ -61,7 +75,7 @@ function LoginPage({ onAuthenticated, onNavigate }: LoginPageProps) {
         <label>
           Password
           <input
-            autoComplete="current-password"
+            autoComplete="new-password"
             minLength={8}
             name="password"
             onChange={(event) => {
@@ -80,7 +94,7 @@ function LoginPage({ onAuthenticated, onNavigate }: LoginPageProps) {
         )}
 
         <button className="button primary" disabled={isSubmitting} type="submit">
-          {isSubmitting ? "Signing In..." : "Sign In"}
+          {isSubmitting ? "Creating..." : "Create Account"}
         </button>
 
         <div className="form-separator" aria-hidden="true">
@@ -97,14 +111,14 @@ function LoginPage({ onAuthenticated, onNavigate }: LoginPageProps) {
           className="link-button"
           type="button"
           onClick={() => {
-            onNavigate("/signup", "signup");
+            onNavigate("/login", "login");
           }}
         >
-          Create a new account
+          Use an existing account
         </button>
       </form>
     </section>
   );
 }
 
-export default LoginPage;
+export default SignupPage;

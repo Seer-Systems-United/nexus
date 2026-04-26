@@ -23,7 +23,18 @@ pnpm install
 pnpm dev
 ```
 
-Vite proxies `/health` to Axum at `http://127.0.0.1:3000`.
+Vite proxies `/health` and `/api` to Axum at `http://127.0.0.1:8080`.
+
+Google OpenID login reads these environment variables:
+
+```sh
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+GOOGLE_REDIRECT_URL=http://127.0.0.1:8080/api/v1/auth/google/callback
+```
+
+`GOOGLE_REDIRECT_URL` is optional for local development if the Google OAuth
+client is configured with the default callback above.
 
 ## Hosting React From Axum
 

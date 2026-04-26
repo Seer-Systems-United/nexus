@@ -9,11 +9,16 @@ axum = "0.8.9"
 base64 = "0.22.1"
 chrono = "0.4.44"
 diesel = { version = "2.3.8", features = ["postgres", "r2d2", "chrono", "uuid"] }
+dotenv = "0.15.0"
 jsonwebtoken = { version = "10.3.0", features = ["aws_lc_rs"] }
+openidconnect = "4.0.1"
+pq-sys = { version = "0.7.5", features = ["bundled_without_openssl"] }
+secrecy = "0.10.3"
 serde = { version = "1.0.228", features = ["derive"] }
 tokio = { version = "1.48.0", features = ["macros", "rt-multi-thread", "net"] }
 tower-http = { version = "0.6.7", features = ["fs"] }
 utoipa = { version = "5.4.0", features = ["chrono", "uuid"] }
 utoipa-axum = "0.2.0"
 utoipa-scalar = { version = "0.3.0", features = ["axum"] }
+url = "2.5.7"
 uuid = { version = "1.23.1", features = ["v4"] }
