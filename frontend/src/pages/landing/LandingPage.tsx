@@ -1,12 +1,25 @@
 type LandingPageProps = {
-  onNavigate: (href: string, page: "landing" | "dashboard" | "login") => void;
+  isAuthenticated: boolean;
+  onNavigate: (
+    href: string,
+    page: "landing" | "dashboard" | "login" | "signup"
+  ) => void;
+  userName?: string;
 };
 
-function LandingPage({ onNavigate }: LandingPageProps) {
+function LandingPage({
+  isAuthenticated,
+  onNavigate,
+  userName
+}: LandingPageProps) {
   return (
     <section className="landing-page page-grid" aria-labelledby="landing-title">
       <div className="intro-panel">
-        <p className="eyebrow">Public Polling Federation System</p>
+        <p className="eyebrow">
+          {isAuthenticated && userName
+            ? `Welcome back, ${userName}`
+            : "Public Polling Federation System"}
+        </p>
         <h1 id="landing-title">Trusted polling across independent networks.</h1>
         <p className="summary">
           Nexus coordinates polls, federation nodes, and voting status in one
@@ -15,23 +28,29 @@ function LandingPage({ onNavigate }: LandingPageProps) {
         <div className="action-row">
           <a
             className="button primary"
-            href="/dashboard"
+            href={isAuthenticated ? "/dashboard" : "/signup"}
             onClick={(event) => {
               event.preventDefault();
-              onNavigate("/dashboard", "dashboard");
+              onNavigate(
+                isAuthenticated ? "/dashboard" : "/signup",
+                isAuthenticated ? "dashboard" : "signup"
+              );
             }}
           >
-            View Dashboard
+            {isAuthenticated ? "View Dashboard" : "Create Account"}
           </a>
           <a
             className="button secondary"
-            href="/login"
+            href={isAuthenticated ? "/dashboard" : "/login"}
             onClick={(event) => {
               event.preventDefault();
-              onNavigate("/login", "login");
+              onNavigate(
+                isAuthenticated ? "/dashboard" : "/login",
+                isAuthenticated ? "dashboard" : "login"
+              );
             }}
           >
-            Operator Login
+            {isAuthenticated ? "Open Workspace" : "Operator Login"}
           </a>
         </div>
       </div>
