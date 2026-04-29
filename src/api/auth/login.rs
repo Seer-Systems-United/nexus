@@ -24,13 +24,23 @@ pub async fn post_login(
     State(state): State<AppState>,
     Json(request): Json<LoginRequest>,
 ) -> Result<Json<AuthResponse>, ApiError> {
-    let email = request.email;
+    let account_number = user::normalize_account_number(&request.account_number);
+
+    if !user::is_valid_account_number(&account_number) {
+        return Err(ApiError::unauthorized("invalid credentials"));
+    }
+
     let supplied_password = request.password;
     let user = db::run(state.clone(), move |conn| {
-        let user = user::get_user_by_email(conn, &email).map_err(|error| match error {
-            diesel::result::Error::NotFound => ApiError::unauthorized("invalid credentials"),
-            error => ApiError::database(error),
-        })?;
+        let user =
+            user::get_user_by_account_number(conn, &account_number).map_err(
+                |error| match error {
+                    diesel::result::Error::NotFound => {
+                        ApiError::unauthorized("invalid credentials")
+                    }
+                    error => ApiError::database(error),
+                },
+            )?;
 
         let valid_password = password::verify_login_password(conn, user.id, &supplied_password)
             .map_err(|error| match error {

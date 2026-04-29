@@ -1,30 +1,25 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import type { ApiUser, AuthResponse } from "./api/client";
+import { useCallback, useEffect, useState } from "react";
+import type { AuthResponse } from "./api/types";
 import nexusLogo from "./assets/nexus_logo_professional.png";
+import GraphBuilderPage from "./pages/builder/GraphBuilderPage";
 import DashboardPage from "./pages/dashboard/DashboardPage";
 import LandingPage from "./pages/landing/LandingPage";
 import LoginPage from "./pages/login/LoginPage";
 import SignupPage from "./pages/signup/SignupPage";
+import type { AuthSession } from "./utils/authStorage";
+import { loadStoredSession, saveSession, clearSession } from "./utils/authStorage";
+import { authResponseFromCallbackHash } from "./utils/authCallback";
 
 type HealthState = "checking" | "online" | "offline";
-type PageKey = "landing" | "dashboard" | "login" | "signup";
-type AuthSession = {
-  token: string;
-  expiresAt: number;
-  user: ApiUser;
-};
-
-const authStorageKey = "nexus.auth";
-
-const navItems: Array<{ href: string; label: string; page: PageKey }> = [
-  { href: "/", label: "Overview", page: "landing" },
-  { href: "/dashboard", label: "Dashboard", page: "dashboard" },
-  { href: "/login", label: "Login", page: "login" }
-];
+type PageKey = "landing" | "dashboard" | "login" | "signup" | "builder";
 
 function pageFromPath(pathname: string): PageKey {
   if (pathname.startsWith("/dashboard")) {
     return "dashboard";
+  }
+
+  if (pathname.startsWith("/builder")) {
+    return "builder";
   }
 
   if (pathname.startsWith("/login")) {
@@ -38,63 +33,11 @@ function pageFromPath(pathname: string): PageKey {
   return "landing";
 }
 
-function loadStoredSession(): AuthSession | null {
-  const storedSession = window.localStorage.getItem(authStorageKey);
-
-  if (!storedSession) {
-    return null;
-  }
-
-  try {
-    const parsed = JSON.parse(storedSession) as AuthSession;
-
-    if (!parsed.token || !parsed.user || parsed.expiresAt <= Date.now()) {
-      window.localStorage.removeItem(authStorageKey);
-      return null;
-    }
-
-    return parsed;
-  } catch {
-    window.localStorage.removeItem(authStorageKey);
-    return null;
-  }
-}
-
-function authResponseFromCallbackHash(hash: string): AuthResponse | null {
-  const params = new URLSearchParams(hash.replace(/^#/, ""));
-  const token = params.get("token");
-  const expiresIn = Number(params.get("expires_in"));
-  const user: ApiUser = {
-    id: params.get("user_id") || "",
-    name: params.get("user_name") || "",
-    email: params.get("user_email") || "",
-    created_at: params.get("user_created_at") || ""
-  };
-
-  if (!token || !Number.isFinite(expiresIn) || expiresIn <= 0 || !user.id) {
-    return null;
-  }
-
-  return {
-    token,
-    token_type: "Bearer",
-    expires_in: expiresIn,
-    user
-  };
-}
-
 function App() {
   const [health, setHealth] = useState<HealthState>("checking");
   const [session, setSession] = useState<AuthSession | null>(loadStoredSession);
   const [page, setPage] = useState<PageKey>(() =>
-    pageFromPath(window.location.pathname)
-  );
-  const visibleNavItems = useMemo(
-    () =>
-      session
-        ? navItems.filter((item) => item.page !== "login")
-        : navItems,
-    [session]
+    pageFromPath(window.location.pathname),
   );
 
   useEffect(() => {
@@ -143,29 +86,29 @@ function App() {
 
   const handleAuthenticated = useCallback(
     (auth: AuthResponse) => {
-      const nextSession = {
-        token: auth.token,
-        expiresAt: Date.now() + auth.expires_in * 1000,
-        user: auth.user
-      };
-
-      window.localStorage.setItem(authStorageKey, JSON.stringify(nextSession));
+      const nextSession = saveSession(auth);
       setSession(nextSession);
       navigate("/dashboard", "dashboard");
     },
-    [navigate]
+    [navigate],
   );
 
   const handleSignOut = useCallback(() => {
-    window.localStorage.removeItem(authStorageKey);
+    clearSession();
     setSession(null);
     navigate("/login", "login");
   }, [navigate]);
 
   const handleSessionExpired = useCallback(() => {
-    window.localStorage.removeItem(authStorageKey);
+    clearSession();
     setSession(null);
   }, []);
+
+  useEffect(() => {
+    if (session && (page === "login" || page === "signup")) {
+      navigate("/dashboard", "dashboard");
+    }
+  }, [navigate, page, session]);
 
   useEffect(() => {
     if (window.location.pathname !== "/auth/callback") {
@@ -194,40 +137,51 @@ function App() {
         >
           <img src={nexusLogo} alt="Nexus" />
         </a>
-        <nav className="primary-nav" aria-label="Primary navigation">
-          {visibleNavItems.map((item) => (
-            <a
-              aria-current={page === item.page ? "page" : undefined}
-              href={item.href}
-              key={item.href}
-              onClick={(event) => {
-                event.preventDefault();
-                navigate(item.href, item.page);
-              }}
-            >
-              {item.label}
-            </a>
-          ))}
-        </nav>
+        <div className="header-spacer" />
         <div className="header-status">
           <div className={`health-pill ${health}`} role="status">
             <span className="dot" aria-hidden="true" />
             {health}
           </div>
           {session ? (
-            <button className="header-action" type="button" onClick={handleSignOut}>
-              Sign Out
-            </button>
+            <details className="account-menu">
+              <summary className="header-action">
+                {session.user.name || "Account"}
+              </summary>
+              <div className="account-menu-panel">
+                <a
+                  href="/dashboard"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    navigate("/dashboard", "dashboard");
+                  }}
+                >
+                  Dashboard
+                </a>
+                <a
+                  href="/builder"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    navigate("/builder", "builder");
+                  }}
+                >
+                  Graph Builder
+                </a>
+                <button type="button" onClick={handleSignOut}>
+                  Sign Out
+                </button>
+              </div>
+            </details>
           ) : (
             <a
               className="header-action"
-              href="/signup"
+              href="/login"
               onClick={(event) => {
                 event.preventDefault();
-                navigate("/signup", "signup");
+                navigate("/login", "login");
               }}
             >
-              Sign Up
+              Login
             </a>
           )}
         </div>
@@ -244,6 +198,13 @@ function App() {
         <DashboardPage
           onNavigate={navigate}
           onUnauthorized={handleSessionExpired}
+          token={session?.token ?? null}
+          user={session?.user ?? null}
+        />
+      )}
+      {page === "builder" && (
+        <GraphBuilderPage
+          onNavigate={navigate}
           token={session?.token ?? null}
         />
       )}

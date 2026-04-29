@@ -118,9 +118,27 @@ _postgres-schema:
     CREATE TABLE IF NOT EXISTS users (
       id UUID PRIMARY KEY,
       name TEXT NOT NULL,
-      email TEXT NOT NULL UNIQUE,
+      email TEXT,
+      account_number TEXT,
       created_at TIMESTAMP NOT NULL
     );
+
+    ALTER TABLE users
+      ALTER COLUMN email DROP NOT NULL;
+
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS account_number TEXT;
+
+    ALTER TABLE users
+      DROP CONSTRAINT IF EXISTS users_email_key;
+
+    CREATE UNIQUE INDEX IF NOT EXISTS users_email_unique_idx
+      ON users(email)
+      WHERE email IS NOT NULL;
+
+    CREATE UNIQUE INDEX IF NOT EXISTS users_account_number_unique_idx
+      ON users(account_number)
+      WHERE account_number IS NOT NULL;
 
     CREATE TABLE IF NOT EXISTS login (
       id UUID PRIMARY KEY,

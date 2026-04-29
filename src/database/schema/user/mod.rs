@@ -4,7 +4,8 @@ diesel::table! {
     users (id) {
         id -> Uuid,
         name -> Text,
-        email -> Text,
+        email -> Nullable<Text>,
+        account_number -> Nullable<Text>,
         created_at -> Timestamp,
     }
 }
@@ -14,7 +15,8 @@ diesel::table! {
 pub struct User {
     pub id: uuid::Uuid,
     pub name: String,
-    pub email: String,
+    pub email: Option<String>,
+    pub account_number: Option<String>,
     pub created_at: chrono::NaiveDateTime,
 }
 
@@ -23,6 +25,7 @@ pub struct User {
 pub struct NewUser {
     pub(crate) id: uuid::Uuid,
     pub(crate) name: String,
-    pub(crate) email: String,
+    pub(crate) email: Option<String>,
+    pub(crate) account_number: Option<String>,
     pub(crate) created_at: chrono::NaiveDateTime,
 }

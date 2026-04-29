@@ -18,7 +18,6 @@ use crate::database::schema::user::User;
     responses(
         (status = 200, description = "Signup successful", body = AuthResponse),
         (status = 400, description = "Invalid signup payload", body = crate::api::error::ApiErrorBody),
-        (status = 409, description = "User already exists", body = crate::api::error::ApiErrorBody),
         (status = 503, description = "Database unavailable", body = crate::api::error::ApiErrorBody),
     )
 )]
@@ -29,19 +28,14 @@ pub async fn post_signup(
     validate_signup_request(&request)?;
 
     let name = request.name;
-    let email = request.email;
     let supplied_password = request.password;
 
     let user = db::run(state.clone(), move |conn| {
         conn.transaction::<User, ApiError, _>(|conn| {
-            match user::get_user_by_email(conn, &email) {
-                Ok(_) => return Err(ApiError::conflict("user already exists")),
-                Err(diesel::result::Error::NotFound) => {}
-                Err(error) => return Err(ApiError::database(error)),
-            }
+            let account_number = allocate_account_number(conn)?;
 
-            let created_user =
-                user::create_user(conn, &name, &email).map_err(ApiError::database)?;
+            let created_user = user::create_account_number_user(conn, &name, &account_number)
+                .map_err(ApiError::database)?;
 
             password::create_login(conn, created_user.id, &supplied_password)
                 .map_err(ApiError::password)?;
@@ -59,10 +53,6 @@ fn validate_signup_request(request: &SignupRequest) -> Result<(), ApiError> {
         return Err(ApiError::bad_request("name is required"));
     }
 
-    if request.email.trim().is_empty() {
-        return Err(ApiError::bad_request("email is required"));
-    }
-
     if request.password.len() < 8 {
         return Err(ApiError::bad_request(
             "password must be at least 8 characters long",
@@ -70,4 +60,19 @@ fn validate_signup_request(request: &SignupRequest) -> Result<(), ApiError> {
     }
 
     Ok(())
+}
+
+fn allocate_account_number(conn: &mut crate::database::DbConnection) -> Result<String, ApiError> {
+    for _ in 0..10 {
+        let account_number = user::generate_account_number()
+            .map_err(|_| ApiError::internal("failed to generate account number"))?;
+
+        match user::get_user_by_account_number(conn, &account_number) {
+            Ok(_) => {}
+            Err(diesel::result::Error::NotFound) => return Ok(account_number),
+            Err(error) => return Err(ApiError::database(error)),
+        }
+    }
+
+    Err(ApiError::internal("failed to allocate account number"))
 }

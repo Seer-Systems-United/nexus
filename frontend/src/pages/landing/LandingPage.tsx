@@ -2,7 +2,7 @@ type LandingPageProps = {
   isAuthenticated: boolean;
   onNavigate: (
     href: string,
-    page: "landing" | "dashboard" | "login" | "signup"
+    page: "landing" | "dashboard" | "login" | "signup",
   ) => void;
   userName?: string;
 };
@@ -10,7 +10,7 @@ type LandingPageProps = {
 function LandingPage({
   isAuthenticated,
   onNavigate,
-  userName
+  userName,
 }: LandingPageProps) {
   return (
     <section className="landing-page page-grid" aria-labelledby="landing-title">
@@ -20,37 +20,29 @@ function LandingPage({
             ? `Welcome back, ${userName}`
             : "Public Polling Federation System"}
         </p>
-        <h1 id="landing-title">Trusted polling across independent networks.</h1>
+        <h1 id="landing-title">All the polls, one location</h1>
         <p className="summary">
-          Nexus coordinates polls, federation nodes, and voting status in one
-          quiet workspace built for operators and auditors.
+          Nexus centralizes all the most popular pollsters data into one
+          easy-to-use API. No account required.
         </p>
         <div className="action-row">
+          {!isAuthenticated && (
+            <a
+              className="button primary"
+              href="/signup"
+              onClick={(event) => {
+                event.preventDefault();
+                onNavigate("/signup", "signup");
+              }}
+            >
+              Create Account
+            </a>
+          )}
           <a
-            className="button primary"
-            href={isAuthenticated ? "/dashboard" : "/signup"}
-            onClick={(event) => {
-              event.preventDefault();
-              onNavigate(
-                isAuthenticated ? "/dashboard" : "/signup",
-                isAuthenticated ? "dashboard" : "signup"
-              );
-            }}
+            className={isAuthenticated ? "button primary" : "button secondary"}
+            href="/docs"
           >
-            {isAuthenticated ? "View Dashboard" : "Create Account"}
-          </a>
-          <a
-            className="button secondary"
-            href={isAuthenticated ? "/dashboard" : "/login"}
-            onClick={(event) => {
-              event.preventDefault();
-              onNavigate(
-                isAuthenticated ? "/dashboard" : "/login",
-                isAuthenticated ? "dashboard" : "login"
-              );
-            }}
-          >
-            {isAuthenticated ? "Open Workspace" : "Operator Login"}
+            API Docs
           </a>
         </div>
       </div>

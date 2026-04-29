@@ -6,13 +6,16 @@ pub mod auth;
 pub mod dashboard;
 mod db;
 pub mod error;
+pub mod sources;
 
 #[derive(OpenApi)]
 #[openapi(
     modifiers(&SecurityAddon),
+    servers((url = "/api")),
     tags(
         (name = "Auth", description = "Authentication and account creation"),
         (name = "Dashboard", description = "Authenticated dashboard access"),
+        (name = "Sources", description = "Polling source ingestion"),
     )
 )]
 struct NexusApiDoc;
@@ -21,6 +24,7 @@ pub fn get_openapi() -> OpenApiRouter<crate::AppState> {
     OpenApiRouter::with_openapi(NexusApiDoc::openapi())
         .nest("/v1/auth", auth::get_openapi())
         .nest("/v1/dashboard", dashboard::get_openapi())
+        .nest("/v1/sources", sources::get_openapi())
 }
 
 struct SecurityAddon;

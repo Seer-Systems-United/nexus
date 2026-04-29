@@ -1,38 +1,40 @@
 import { useCallback, useEffect, useState } from "react";
 import {
-  ApiRequestError,
   getDashboard,
-  type DashboardMetric,
-  type DashboardResponse
+  type ApiUser,
+  type DashboardResponse,
 } from "../../api/client";
-
-const federationRows = [
-  { name: "Northeast Civic", status: "Synced", polls: 18, tone: "online" },
-  { name: "Central County", status: "Review", polls: 7, tone: "review" },
-  { name: "Western Municipal", status: "Synced", polls: 11, tone: "online" }
-];
+import { loadSourceRows, type SourceRow } from "./utils/dataLoader";
+import { accountIdentifier } from "./utils/user";
+import { DashboardMetrics, metricsForDisplay } from "./components/DashboardMetrics";
+import { SourceStructure, sourceSummary, collectionSummary } from "./components/SourceStructure";
 
 type DashboardPageProps = {
   onNavigate: (
     href: string,
-    page: "landing" | "dashboard" | "login" | "signup"
+    page: "landing" | "dashboard" | "login" | "signup",
   ) => void;
   onUnauthorized: () => void;
   token: string | null;
+  user: ApiUser | null;
 };
 
 function DashboardPage({
   onNavigate,
   onUnauthorized,
-  token
+  token,
+  user,
 }: DashboardPageProps) {
   const [dashboard, setDashboard] = useState<DashboardResponse | null>(null);
+  const [sources, setSources] = useState<SourceRow[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const displayUser = dashboard?.user ?? user;
 
   const loadDashboard = useCallback(async () => {
     if (!token) {
       setDashboard(null);
+      setSources([]);
       setError(null);
       setIsLoading(false);
       return;
@@ -41,25 +43,43 @@ function DashboardPage({
     setError(null);
     setIsLoading(true);
 
-    try {
-      const nextDashboard = await getDashboard(token);
-      setDashboard(nextDashboard);
-    } catch (requestError) {
+    const [dashboardResult, sourcesResult] = await Promise.allSettled([
+      getDashboard(token),
+      loadSourceRows(),
+    ]);
+
+    if (dashboardResult.status === "fulfilled") {
+      setDashboard(dashboardResult.value);
+    } else {
+      const requestError = dashboardResult.reason;
+
       if (
-        requestError instanceof ApiRequestError &&
+        requestError instanceof Error &&
+        'status' in requestError &&
         requestError.status === 401
       ) {
         onUnauthorized();
         setDashboard(null);
+        setIsLoading(false);
         setError("Your session expired. Sign in again to continue.");
-      } else if (requestError instanceof ApiRequestError) {
+        return;
+      }
+
+      if (requestError instanceof Error) {
         setError(requestError.message);
       } else {
         setError("Unable to load dashboard data");
       }
-    } finally {
-      setIsLoading(false);
     }
+
+    if (sourcesResult.status === "fulfilled") {
+      setSources(sourcesResult.value);
+    } else {
+      setSources([]);
+      console.error("Failed to load sources", sourcesResult.reason);
+    }
+
+    setIsLoading(false);
   }, [onUnauthorized, token]);
 
   useEffect(() => {
@@ -105,9 +125,9 @@ function DashboardPage({
         <div className="page-heading">
           <p className="eyebrow">Operations</p>
           <h1 id="dashboard-title">Federation Dashboard</h1>
-          {dashboard && (
+          {displayUser && (
             <p className="account-line">
-              {dashboard.user.name} - {dashboard.user.email}
+              {displayUser.name} - {accountIdentifier(displayUser)}
             </p>
           )}
         </div>
@@ -129,75 +149,55 @@ function DashboardPage({
         </div>
       )}
 
-      <div className="dashboard-grid">
-        {metricsForDisplay(dashboard, isLoading).map((metric, index) => (
-          <article
-            className={`metric-card ${metricTone(metric, index)}`}
-            key={metric.label}
-          >
-            <span className="metric-value">{metric.value}</span>
-            <span className="metric-label">{metric.label}</span>
-            <span className={`metric-status ${metric.status}`}>
-              {metric.status}
-            </span>
-          </article>
-        ))}
-      </div>
+      <DashboardMetrics
+        metrics={metricsForDisplay(dashboard, isLoading)}
+        isLoading={isLoading}
+      />
 
-      <section className="table-panel" aria-label="Federation status">
+      <section
+        className="table-panel source-panel"
+        aria-label="Polling sources"
+      >
         <div className="table-header">
-          <h2>Federations</h2>
-          <span>Live status</span>
+          <h2>Polling Sources</h2>
+          <span>{sources.length} connected</span>
         </div>
         <div className="federation-list">
-          {federationRows.map((row) => (
-            <div className="federation-row" key={row.name}>
-              <div>
-                <strong>{row.name}</strong>
-                <span>{row.polls} active polls</span>
+          {sources.map((row) => (
+            <article className="source-section" key={row.id}>
+              <div className="federation-row source-row">
+                <div>
+                  <strong>{row.name}</strong>
+                  <span>{sourceSummary(row)}</span>
+                </div>
+                <span className={`status-chip ${row.tone}`}>{row.status}</span>
               </div>
-              <span className={`status-chip ${row.tone}`}>{row.status}</span>
-            </div>
+
+              {row.collection ? (
+                <div className="source-body">
+                  <div className="source-copy">
+                    <h3>{row.collection.title}</h3>
+                    <p>{collectionSummary(row.collection)}</p>
+                  </div>
+                  <div className="source-grid">
+                    {row.collection.data.map((structure, index) =>
+                      SourceStructure({ structure, key: `${row.id}-${index}` }),
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="source-body">
+                  <p className="source-message">
+                    {row.error ?? "Source data is unavailable."}
+                  </p>
+                </div>
+              )}
+            </article>
           ))}
         </div>
       </section>
     </section>
   );
-}
-
-function metricsForDisplay(
-  dashboard: DashboardResponse | null,
-  isLoading: boolean
-): DashboardMetric[] {
-  if (dashboard) {
-    return dashboard.metrics;
-  }
-
-  if (isLoading) {
-    return [
-      { label: "Active federations", value: "...", status: "loading" },
-      { label: "Node availability", value: "...", status: "loading" },
-      { label: "Ballots synchronized", value: "...", status: "loading" }
-    ];
-  }
-
-  return [
-    { label: "Active federations", value: "0", status: "offline" },
-    { label: "Node availability", value: "0%", status: "offline" },
-    { label: "Ballots synchronized", value: "0", status: "offline" }
-  ];
-}
-
-function metricTone(metric: DashboardMetric, index: number): string {
-  if (metric.status === "review") {
-    return "danger";
-  }
-
-  if (index === 0 && metric.status !== "loading") {
-    return "strong";
-  }
-
-  return "";
 }
 
 export default DashboardPage;

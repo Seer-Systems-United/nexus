@@ -28,6 +28,10 @@ impl ApiError {
         Self::new(StatusCode::UNAUTHORIZED, "unauthorized", message)
     }
 
+    pub fn not_found(message: impl Into<String>) -> Self {
+        Self::new(StatusCode::NOT_FOUND, "not_found", message)
+    }
+
     pub fn conflict(message: impl Into<String>) -> Self {
         Self::new(StatusCode::CONFLICT, "conflict", message)
     }
@@ -75,6 +79,22 @@ impl From<diesel::result::Error> for ApiError {
 
 impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
+        if self.status.is_server_error() {
+            tracing::error!(
+                status = %self.status,
+                code = self.code,
+                message = %self.message,
+                "api request failed"
+            );
+        } else if self.status.is_client_error() {
+            tracing::warn!(
+                status = %self.status,
+                code = self.code,
+                message = %self.message,
+                "api request rejected"
+            );
+        }
+
         let body = ApiErrorBody {
             error: self.code.to_string(),
             message: self.message,

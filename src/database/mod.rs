@@ -29,5 +29,5 @@ pub fn create_user(
     user_name: &str,
     user_email: &str,
 ) -> Result<usize, Error> {
-    ops::user::create_user(conn, user_name, user_email).map(|_| 1)
+    ops::user::create_oidc_user(conn, user_name, user_email).map(|_| 1)
 }

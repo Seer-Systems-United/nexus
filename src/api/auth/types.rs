@@ -6,13 +6,12 @@ use crate::database::schema::user::User;
 #[derive(Debug, Deserialize, ToSchema)]
 pub struct SignupRequest {
     pub name: String,
-    pub email: String,
     pub password: String,
 }
 
 #[derive(Debug, Deserialize, ToSchema)]
 pub struct LoginRequest {
-    pub email: String,
+    pub account_number: String,
     pub password: String,
 }
 
@@ -28,7 +27,8 @@ pub struct AuthResponse {
 pub struct UserResponse {
     pub id: String,
     pub name: String,
-    pub email: String,
+    pub email: Option<String>,
+    pub account_number: Option<String>,
     pub created_at: String,
 }
 
@@ -38,6 +38,7 @@ impl From<User> for UserResponse {
             id: user.id.to_string(),
             name: user.name,
             email: user.email,
+            account_number: user.account_number,
             created_at: user.created_at.to_string(),
         }
     }

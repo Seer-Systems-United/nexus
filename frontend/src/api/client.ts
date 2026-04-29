@@ -1,53 +1,43 @@
-export type ApiUser = {
-  id: string;
-  name: string;
-  email: string;
-  created_at: string;
-};
+import { ApiRequestError } from "./types";
+import type {
+  ApiUser,
+  AuthResponse,
+  LoginRequest,
+  SignupRequest,
+  DashboardMetric,
+  DashboardResponse,
+  SourceSummary,
+  SourceDataSeries,
+  SourceDataSlice,
+  SourceDataRow,
+  SourceDataGroup,
+  SourceDataPanel,
+  SourceDataStructure,
+  SourceCollection,
+} from "./types";
 
-export type AuthResponse = {
-  token: string;
-  token_type: "Bearer";
-  expires_in: number;
-  user: ApiUser;
-};
-
-export type LoginRequest = {
-  email: string;
-  password: string;
-};
-
-export type SignupRequest = LoginRequest & {
-  name: string;
-};
-
-export type DashboardMetric = {
-  label: string;
-  value: string;
-  status: string;
-};
-
-export type DashboardResponse = {
-  user: ApiUser;
-  metrics: DashboardMetric[];
+export { ApiRequestError };
+export type {
+  ApiUser,
+  AuthResponse,
+  LoginRequest,
+  SignupRequest,
+  DashboardMetric,
+  DashboardResponse,
+  SourceSummary,
+  SourceDataSeries,
+  SourceDataSlice,
+  SourceDataRow,
+  SourceDataGroup,
+  SourceDataPanel,
+  SourceDataStructure,
+  SourceCollection,
 };
 
 type ApiErrorBody = {
   error?: string;
   message?: string;
 };
-
-export class ApiRequestError extends Error {
-  readonly status: number;
-  readonly code?: string;
-
-  constructor(status: number, message: string, code?: string) {
-    super(message);
-    this.name = "ApiRequestError";
-    this.status = status;
-    this.code = code;
-  }
-}
 
 export async function login(request: LoginRequest): Promise<AuthResponse> {
   return postJson<AuthResponse>("/api/v1/auth/login", request);
@@ -58,29 +48,50 @@ export async function signup(request: SignupRequest): Promise<AuthResponse> {
 }
 
 export async function getDashboard(token: string): Promise<DashboardResponse> {
-  return requestJson<DashboardResponse>("/api/v1/dashboard/", {
+  return requestJson<DashboardResponse>("/api/v1/dashboard", {
     headers: {
-      authorization: `Bearer ${token}`
-    }
+      authorization: `Bearer ${token}`,
+    },
   });
+}
+
+export async function listSources(): Promise<SourceSummary[]> {
+  return requestJson<SourceSummary[]>("/api/v1/sources");
+}
+
+export async function getSource(
+  source: string,
+  scope?: string,
+  count?: number,
+  question?: string,
+): Promise<SourceCollection> {
+  const params = new URLSearchParams();
+  if (scope) params.append("scope", scope);
+  if (count) params.append("count", count.toString());
+  if (question) params.append("question", question);
+
+  const query = params.toString();
+  const url = `/api/v1/sources/${source}${query ? `?${query}` : ""}`;
+
+  return requestJson<SourceCollection>(url);
 }
 
 async function postJson<TResponse>(
   url: string,
-  body: Record<string, string>
+  body: Record<string, string>,
 ): Promise<TResponse> {
   return requestJson<TResponse>(url, {
     method: "POST",
     headers: {
-      "content-type": "application/json"
+      "content-type": "application/json",
     },
-    body: JSON.stringify(body)
+    body: JSON.stringify(body),
   });
 }
 
 async function requestJson<TResponse>(
   url: string,
-  init?: RequestInit
+  init?: RequestInit,
 ): Promise<TResponse> {
   const response = await fetch(url, init);
 
@@ -89,7 +100,7 @@ async function requestJson<TResponse>(
     throw new ApiRequestError(
       response.status,
       errorBody.message || "Request failed",
-      errorBody.error
+      errorBody.error,
     );
   }
 
