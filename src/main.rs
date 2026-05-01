@@ -3,6 +3,7 @@ pub mod database;
 pub mod health;
 pub mod sources;
 pub mod state;
+pub mod topics;
 pub mod utils;
 
 pub use state::AppState;
@@ -20,6 +21,16 @@ use utoipa_scalar::{Scalar, Servable};
 #[tokio::main]
 async fn main() {
     init_tracing();
+
+    let mut args = std::env::args().skip(1).collect::<Vec<_>>();
+    if args.first().map(String::as_str) == Some("enrich-topics") {
+        args.remove(0);
+        if let Err(error) = topics::enrichment::run_cli(args).await {
+            eprintln!("enrich-topics failed: {error}");
+            std::process::exit(1);
+        }
+        return;
+    }
 
     let state = AppState::from_env();
     let (api_router, openapi) = api::get_openapi().split_for_parts();

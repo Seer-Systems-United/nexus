@@ -36,14 +36,6 @@ async fn fetch_html(url: &str) -> Result<String, Box<dyn Error + Send + Sync>> {
     Ok(reqwest::get(url).await?.error_for_status()?.text().await?)
 }
 
-async fn latest_economist_article_url() -> Result<String, Box<dyn Error + Send + Sync>> {
-    let landing_page = fetch_html(ECONOMIST_LANDING_PAGE_URL).await?;
-    let document = Html::parse_document(&landing_page);
-
-    first_matching_href(&document, |href| href.starts_with(ECONOMIST_ARTICLE_PREFIX))
-        .ok_or_else(|| missing_resource_error("latest Economist article link not found"))
-}
-
 async fn poll_pdf_urls(
     scope: crate::sources::Scope,
 ) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
@@ -82,7 +74,7 @@ async fn poll_pdf_urls(
     Ok(pdf_urls)
 }
 
-pub async fn download_yougov_data(
+pub(crate) async fn download_yougov_data(
     scope: crate::sources::Scope,
 ) -> Result<Vec<Vec<u8>>, Box<dyn Error + Send + Sync>> {
     tracing::info!(source = "yougov", "downloading YouGov poll PDFs");

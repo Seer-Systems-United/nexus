@@ -5,6 +5,10 @@ postgres-port := "55432"
 postgres-user := "nexus"
 postgres-db := "nexus_test"
 database-url := "postgres://nexus@127.0.0.1:55432/nexus_test"
+topic-enrich-scope := "last_entries"
+topic-enrich-count := "5"
+topic-llm-endpoint := "http://127.0.0.1:11434/v1/chat/completions"
+topic-llm-model := "qwen3:0.6b"
 
 run:
     nix-shell --run 'just _run'
@@ -14,6 +18,15 @@ run-test-db:
 
 test:
     nix-shell --run 'just _test'
+
+enrich-topics scope=topic-enrich-scope count=topic-enrich-count:
+    nix-shell --run 'just _enrich-topics {{scope}} {{count}}'
+
+enrich-topics-dry-run scope=topic-enrich-scope count=topic-enrich-count:
+    nix-shell --run 'just _enrich-topics-dry-run {{scope}} {{count}}'
+
+enrich-topics-refresh scope=topic-enrich-scope count=topic-enrich-count:
+    nix-shell --run 'just _enrich-topics-refresh {{scope}} {{count}}'
 
 postgres-setup:
     nix-shell --run 'just _postgres-setup'
@@ -45,6 +58,36 @@ _run-test-db: _postgres-setup
 [private]
 _test: _postgres-setup
     DATABASE_URL='{{database-url}}' cargo test
+
+[private]
+_enrich-topics scope count:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    export NEXUS_TOPIC_LLM_ENDPOINT="${NEXUS_TOPIC_LLM_ENDPOINT:-{{topic-llm-endpoint}}}"
+    export NEXUS_TOPIC_LLM_MODEL="${NEXUS_TOPIC_LLM_MODEL:-{{topic-llm-model}}}"
+
+    cargo run -- enrich-topics --scope '{{scope}}' --count '{{count}}'
+
+[private]
+_enrich-topics-dry-run scope count:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    export NEXUS_TOPIC_LLM_ENDPOINT="${NEXUS_TOPIC_LLM_ENDPOINT:-{{topic-llm-endpoint}}}"
+    export NEXUS_TOPIC_LLM_MODEL="${NEXUS_TOPIC_LLM_MODEL:-{{topic-llm-model}}}"
+
+    cargo run -- enrich-topics --scope '{{scope}}' --count '{{count}}' --dry-run
+
+[private]
+_enrich-topics-refresh scope count:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    export NEXUS_TOPIC_LLM_ENDPOINT="${NEXUS_TOPIC_LLM_ENDPOINT:-{{topic-llm-endpoint}}}"
+    export NEXUS_TOPIC_LLM_MODEL="${NEXUS_TOPIC_LLM_MODEL:-{{topic-llm-model}}}"
+
+    cargo run -- enrich-topics --scope '{{scope}}' --count '{{count}}' --refresh
 
 [private]
 _postgres-setup: _postgres-start _postgres-create-db _postgres-schema

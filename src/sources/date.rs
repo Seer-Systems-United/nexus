@@ -38,13 +38,6 @@ impl SimpleDate {
         Ok(civil_from_days(days_since_epoch as i64))
     }
 
-    pub(crate) fn one_year_prior(self) -> Self {
-        let previous_year = self.year - 1;
-        let max_day = days_in_month(previous_year, self.month);
-
-        Self::new(previous_year, self.month, self.day.min(max_day))
-    }
-
     pub(crate) fn days_prior(self, days: u32) -> Result<Self, DynError> {
         let date = chrono::NaiveDate::from_ymd_opt(self.year, self.month.into(), self.day.into())
             .ok_or_else(|| IoError::new(ErrorKind::InvalidData, "invalid simple date"))?;
@@ -143,13 +136,6 @@ mod tests {
         assert_eq!(date.year, 2026);
         assert_eq!(date.month, 4);
         assert_eq!(date.day, 22);
-    }
-
-    #[test]
-    fn computes_one_year_prior() {
-        let date = SimpleDate::new(2026, 4, 22).one_year_prior();
-
-        assert_eq!(date, SimpleDate::new(2025, 4, 22));
     }
 
     #[test]

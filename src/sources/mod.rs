@@ -4,6 +4,7 @@ use std::fmt;
 pub(crate) mod date;
 pub mod emerson;
 pub mod gallup;
+pub mod ipsos;
 pub mod persistance;
 pub mod yougov;
 

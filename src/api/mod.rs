@@ -7,6 +7,7 @@ pub mod dashboard;
 mod db;
 pub mod error;
 pub mod sources;
+pub mod topics;
 
 #[derive(OpenApi)]
 #[openapi(
@@ -16,6 +17,7 @@ pub mod sources;
         (name = "Auth", description = "Authentication and account creation"),
         (name = "Dashboard", description = "Authenticated dashboard access"),
         (name = "Sources", description = "Polling source ingestion"),
+        (name = "Topics", description = "Canonical polling question topics"),
     )
 )]
 struct NexusApiDoc;
@@ -25,6 +27,7 @@ pub fn get_openapi() -> OpenApiRouter<crate::AppState> {
         .nest("/v1/auth", auth::get_openapi())
         .nest("/v1/dashboard", dashboard::get_openapi())
         .nest("/v1/sources", sources::get_openapi())
+        .nest("/v1/topics", topics::get_openapi())
 }
 
 struct SecurityAddon;

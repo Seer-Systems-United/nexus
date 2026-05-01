@@ -148,16 +148,20 @@ fn parse_chart_csv(title: &str, csv_bytes: &[u8]) -> Option<DataStructure> {
     })
 }
 
-pub fn extract_gallup_data(
+pub(crate) fn extract_gallup_data(
     articles: &[crate::sources::gallup::server::GallupArticleAsset],
     scope: Scope,
 ) -> Result<DataCollection, DynError> {
     let mut data = Vec::new();
     let mut chart_failures = 0usize;
     let mut skipped_articles = 0usize;
+    let mut pdf_articles = 0usize;
 
     for article in articles {
         let before_count = data.len();
+        if article.pdf_bytes.is_some() {
+            pdf_articles += 1;
+        }
 
         for chart in &article.charts {
             match parse_chart_csv(&chart.title, &chart.csv_bytes) {
@@ -179,6 +183,8 @@ pub fn extract_gallup_data(
         source = "gallup",
         scope = %scope,
         charts = data.len(),
+        article_titles = ?articles.iter().map(|article| &article.title).collect::<Vec<_>>(),
+        pdf_articles,
         chart_failures,
         skipped_articles,
         "extracted Gallup source data"

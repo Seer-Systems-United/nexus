@@ -1,48 +1,49 @@
 use crate::sources::{DataCollection, Scope, Source, persistance::StorageWrapper};
 use std::io::{Error as IoError, ErrorKind};
 
-pub mod download;
-pub mod extract;
+mod download;
+mod extract;
 
 #[derive(Debug, Clone)]
-pub(crate) struct EmersonWorkbook {
+pub(crate) struct IpsosPollPdf {
     pub title: String,
-    pub date: String,
+    pub published_on: String,
+    pub article_url: String,
+    pub pdf_url: String,
     pub bytes: Vec<u8>,
 }
 
-async fn load_emerson(
+async fn load_ipsos(
     scope: Scope,
 ) -> Result<DataCollection, Box<dyn std::error::Error + Send + Sync>> {
-    let storage = StorageWrapper::<super::Emerson>::new();
+    let storage = StorageWrapper::<super::Ipsos>::new();
 
     storage
         .get_data_with_cache(scope, |cached| async move {
-            let workbooks = download::download_emerson_data(scope).await?;
+            let pdfs = download::download_ipsos_polls(scope).await?;
 
-            if workbooks.is_empty() {
+            if pdfs.is_empty() {
                 return cached.map(|snapshot| snapshot.data).ok_or_else(|| {
                     IoError::new(
                         ErrorKind::NotFound,
-                        format!("Emerson workbook not found for scope {scope}"),
+                        format!("Ipsos poll PDFs not found for scope {scope}"),
                     )
                     .into()
                 });
             }
 
-            extract::extract_emerson_data(&workbooks, scope)
+            extract::extract_ipsos_data(&pdfs, scope)
         })
         .await
 }
 
 #[async_trait::async_trait]
-impl Source for super::Emerson {
-    const NAME: &'static str = "Emerson";
-    const CACHE_VERSION: &'static str = "v2";
+impl Source for super::Ipsos {
+    const NAME: &'static str = "Ipsos";
 
     async fn get_data(
         scope: Scope,
     ) -> Result<super::super::DataCollection, Box<dyn std::error::Error + Send + Sync>> {
-        load_emerson(scope).await
+        load_ipsos(scope).await
     }
 }

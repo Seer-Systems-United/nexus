@@ -45,16 +45,18 @@ pub struct SourceQuery {
 enum SourceKey {
     Emerson,
     Gallup,
+    Ipsos,
     YouGov,
 }
 
 impl SourceKey {
-    const ALL: [Self; 3] = [Self::Emerson, Self::Gallup, Self::YouGov];
+    const ALL: [Self; 4] = [Self::Emerson, Self::Gallup, Self::Ipsos, Self::YouGov];
 
     fn parse(input: &str) -> Option<Self> {
         match input.trim().to_ascii_lowercase().as_str() {
             "emerson" => Some(Self::Emerson),
             "gallup" => Some(Self::Gallup),
+            "ipsos" => Some(Self::Ipsos),
             "yougov" | "you-gov" => Some(Self::YouGov),
             _ => None,
         }
@@ -64,6 +66,7 @@ impl SourceKey {
         match self {
             Self::Emerson => "emerson",
             Self::Gallup => "gallup",
+            Self::Ipsos => "ipsos",
             Self::YouGov => "yougov",
         }
     }
@@ -72,6 +75,7 @@ impl SourceKey {
         match self {
             Self::Emerson => "Emerson",
             Self::Gallup => "Gallup",
+            Self::Ipsos => "Ipsos",
             Self::YouGov => "YouGov",
         }
     }
@@ -107,7 +111,7 @@ pub async fn list_sources() -> Json<Vec<SourceSummary>> {
     path = "/{source}",
     tag = "Sources",
     params(
-        ("source" = String, Path, description = "Source id: emerson, gallup, or yougov"),
+        ("source" = String, Path, description = "Source id: emerson, gallup, ipsos, or yougov"),
         ("scope" = Option<String>, Query, description = "Scope: latest, last_n_entries, last_days, last_weeks, last_months, or last_years"),
         ("count" = Option<u32>, Query, description = "Required for counted scopes. Alias: n"),
         ("n" = Option<u32>, Query, description = "Alias for count"),
@@ -162,6 +166,7 @@ async fn load_source(source: SourceKey, scope: Scope) -> Result<DataCollection, 
     let data = match source {
         SourceKey::Emerson => crate::sources::emerson::Emerson::get_data(scope),
         SourceKey::Gallup => crate::sources::gallup::Gallup::get_data(scope),
+        SourceKey::Ipsos => crate::sources::ipsos::Ipsos::get_data(scope),
         SourceKey::YouGov => crate::sources::yougov::YouGov::get_data(scope),
     }
     .await
