@@ -159,7 +159,7 @@ fn observation_from_structure(
     structure: &DataStructure,
     topic_match: TopicMatch,
 ) -> Option<TopicObservation> {
-    let (question_title, prompt) = mappings::common::structure_title_prompt(structure);
+    let (raw_question_title, raw_prompt) = mappings::common::structure_title_prompt(structure);
     let demographics = demographics_from_structure(&topic_match.topic.id, structure);
 
     if demographics.is_empty() {
@@ -168,10 +168,12 @@ fn observation_from_structure(
 
     let poll_date = mappings::common::date_in_text(&format!(
         "{} {} {}",
-        question_title,
-        prompt,
+        raw_question_title,
+        raw_prompt,
         collection.subtitle.clone().unwrap_or_default()
     ));
+    let question_title = nlp::clean_question_text(source, &raw_question_title);
+    let prompt = nlp::clean_question_text(source, &raw_prompt);
 
     Some(TopicObservation {
         id: format!("{}:{}:{index}", source.id(), topic_match.topic.id),
