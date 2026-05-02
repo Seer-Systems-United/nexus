@@ -1,3 +1,7 @@
+//! # Topic types
+//!
+//! Core topic enums and types for canonical polling topics.
+
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 

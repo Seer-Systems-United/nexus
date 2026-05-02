@@ -1,13 +1,31 @@
+//! # Gallup HTML parsing module
+//!
+//! Parses Gallup search pages and article pages to extract
+//! article stubs, chart stubs, and PDF URLs.
+
 use super::utils::*;
 use crate::sources::date::SimpleDate;
 use scraper::{Html, Selector};
 
+/// Metadata stub for a Gallup article found in search results.
+///
+/// # Fields
+/// - `title`: Article title.
+/// - `article_url`: URL of the article page.
+/// - `published_on`: Publication date.
 pub struct ArticleStub {
     pub title: String,
     pub article_url: String,
     pub published_on: SimpleDate,
 }
 
+/// Parse article stubs from a Gallup search results page.
+///
+/// # Parameters
+/// - `html`: The HTML content of the search page.
+///
+/// # Returns
+/// - `Ok(Vec<ArticleStub>)`: List of found article stubs.
 pub fn parse_search_stubs(html: &str) -> Result<Vec<ArticleStub>, super::DynError> {
     let document = Html::parse_fragment(html);
     let tile_selector =
@@ -45,16 +63,33 @@ pub fn parse_search_stubs(html: &str) -> Result<Vec<ArticleStub>, super::DynErro
     Ok(stubs)
 }
 
+/// Chart stub for a Gallup datawrapper chart.
+///
+/// # Fields
+/// - `title`: Chart title.
+/// - `chart_url`: URL of the chart (datawrapper).
 pub struct ChartStub {
     pub title: String,
     pub chart_url: String,
 }
 
+/// Assets found in a Gallup article page.
+///
+/// # Fields
+/// - `pdf_url`: Optional PDF URL.
+/// - `charts`: List of chart stubs.
 pub struct ArticleAssets {
     pub pdf_url: Option<String>,
     pub charts: Vec<ChartStub>,
 }
 
+/// Parse an article page for PDF and chart assets.
+///
+/// # Parameters
+/// - `html`: The HTML content of the article page.
+///
+/// # Returns
+/// - `Ok(ArticleAssets)`: Found assets.
 pub fn parse_article_assets(html: &str) -> Result<ArticleAssets, super::DynError> {
     let document = Html::parse_document(html);
     let link_selector = Selector::parse("a[href]").expect("valid link selector");

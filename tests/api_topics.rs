@@ -1,3 +1,7 @@
+//! # API topics endpoint tests
+//!
+//! Tests for the topic query parsing and API endpoint logic.
+
 use nexus::api::topics::{TopicQuery, parse_topic_scope};
 use nexus::sources::Scope;
 

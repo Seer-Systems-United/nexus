@@ -1,3 +1,8 @@
+//! # Topic enrichment module
+//!
+//! Uses LLM classifiers to map polling questions to canonical topics.
+//! Provides CLI tools, classification, and index storage.
+
 mod classifier;
 mod cli;
 mod index;
@@ -8,6 +13,18 @@ pub use classifier::parse_classifier_output;
 pub use cli::{parse_scope, run_cli};
 pub use index::{applicable_topic_id, apply_index_to_observations};
 pub use models::{ClassificationInput, ClassificationOutput, QuestionEnrichment, QuestionIndex};
+
+use std::error::Error;
+
+pub type DynError = Box<dyn Error + Send + Sync>;
+
+const INDEX_VERSION: u32 = 1;
+const DEFAULT_INDEX_PATH: &str = "data/topics/question-index.json";
+const DEFAULT_LLM_ENDPOINT: &str = "http://127.0.0.1:11434/v1/chat/completions";
+const DEFAULT_LLM_MODEL: &str = "qwen3:0.6b";
+const MIN_APPLY_CONFIDENCE: f32 = 0.55;
+
+const SYSTEM_PROMPT: &str = r#"You classify polling questions into canonical polling topics.
 
 use std::error::Error;
 

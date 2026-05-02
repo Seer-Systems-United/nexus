@@ -1,3 +1,7 @@
+//! # User schema
+//!
+//! Diesel schema definition for the `users` table.
+
 use diesel::prelude::*;
 
 diesel::table! {

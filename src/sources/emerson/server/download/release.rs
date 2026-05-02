@@ -1,3 +1,7 @@
+//! # Emerson release downloader
+//!
+//! Downloads individual Emerson poll workbooks from release pages.
+
 use super::parse::ReleaseStub;
 use super::{DynError, network, parse_release_details, utils};
 

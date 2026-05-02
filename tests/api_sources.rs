@@ -1,3 +1,7 @@
+//! # API sources endpoint tests
+//!
+//! Tests for source query parsing and API endpoint logic.
+
 use nexus::api::sources::{SourceQuery, parse_scope};
 use nexus::sources::Scope;
 

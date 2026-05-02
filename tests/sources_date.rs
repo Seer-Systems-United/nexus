@@ -1,3 +1,7 @@
+//! # Sources date tests
+//!
+//! Tests for date parsing and SimpleDate utilities.
+
 use nexus::sources::date::{SimpleDate, parse_month_name};
 use std::time::{Duration, UNIX_EPOCH};
 

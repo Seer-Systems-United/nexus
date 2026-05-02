@@ -1,3 +1,7 @@
+//! # Emerson release page parser
+//!
+//! Parses Emerson blog release listing pages to extract poll stubs.
+
 use super::utils::*;
 use crate::sources::date::{SimpleDate, parse_month_name};
 use scraper::{ElementRef, Html, Selector};

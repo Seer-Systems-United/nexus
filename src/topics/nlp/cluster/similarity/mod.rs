@@ -1,3 +1,8 @@
+//! # Cluster similarity module
+//!
+//! Computes similarity scores between topic candidates.
+//! Uses Jaro-Winkler and set intersection.
+
 mod features;
 
 use super::super::models::{Candidate, CandidateTerms, Cluster};

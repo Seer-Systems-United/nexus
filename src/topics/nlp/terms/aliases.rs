@@ -1,3 +1,8 @@
+//! # Term aliases
+//!
+//! Maps common variations to canonical term forms.
+//! Handles acronyms, plurals, and synonyms.
+
 use super::term;
 use crate::topics::nlp::models::Term;
 

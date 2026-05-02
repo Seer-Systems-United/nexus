@@ -1,3 +1,8 @@
+//! # Login endpoint handler
+//!
+//! Handles user login requests with account number/password, verifies credentials,
+//! and returns JWT authentication responses.
+
 use axum::Json;
 use axum::extract::State;
 
@@ -20,6 +25,18 @@ use crate::database::ops::{password, user};
         (status = 503, description = "Database unavailable", body = crate::api::error::ApiErrorBody),
     )
 )]
+/// Handle POST /login requests to authenticate existing users.
+///
+/// # Parameters
+/// - `state`: Shared application state containing JWT config and DB pool.
+/// - `request`: JSON payload with account number and password.
+///
+/// # Returns
+/// - `Ok(Json<AuthResponse>)`: Authenticated user details and JWT token.
+///
+/// # Errors
+/// - `401 Unauthorized`: Invalid credentials (account number not found, invalid password).
+/// - `503 Service Unavailable`: Database connection or operation failure.
 pub async fn post_login(
     State(state): State<AppState>,
     Json(request): Json<LoginRequest>,

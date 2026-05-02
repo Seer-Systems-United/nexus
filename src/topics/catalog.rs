@@ -1,5 +1,17 @@
+//! # Topic catalog
+//!
+//! Defines stable topic IDs, labels, descriptions, and endpoint mappings.
+//! Used for the `/topics/` API and topic classification.
+
 use crate::topics::types::{TopicStatus, TopicSummary};
 
+/// Internal topic definition structure.
+///
+/// # Fields
+/// - `id`: Static topic ID string.
+/// - `label`: Human-readable topic label.
+/// - `description`: Topic description.
+/// - `endpoint`: Optional API endpoint path.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct TopicDefinition {
     pub id: &'static str,
@@ -8,6 +20,7 @@ pub(crate) struct TopicDefinition {
     pub endpoint: Option<&'static str>,
 }
 
+// Stable topic ID constants
 pub(crate) const PRESIDENTIAL_APPROVAL_ID: &str = "presidential-approval";
 pub(crate) const RIGHT_DIRECTION_ID: &str = "right-direction";
 pub(crate) const GENERIC_BALLOT_ID: &str = "generic-ballot";
@@ -75,10 +88,24 @@ const STABLE_TOPICS: &[TopicDefinition] = &[
     },
 ];
 
+/// Get all stable topics as `TopicSummary` for API responses.
+///
+/// # Returns
+///
+/// A vector of `TopicSummary` structs for all stable topics.
 pub fn stable_topics() -> Vec<TopicSummary> {
     STABLE_TOPICS.iter().map(|topic| topic.summary()).collect()
 }
 
+/// Look up a single stable topic by ID.
+///
+/// # Parameters
+///
+/// - `id`: The topic ID string to look up.
+///
+/// # Returns
+///
+/// `Some(TopicSummary)` if found, `None` otherwise.
 pub(crate) fn stable_topic(id: &str) -> Option<TopicSummary> {
     STABLE_TOPICS
         .iter()
@@ -87,6 +114,11 @@ pub(crate) fn stable_topic(id: &str) -> Option<TopicSummary> {
 }
 
 impl TopicDefinition {
+    /// Convert a `TopicDefinition` into a `TopicSummary` for API responses.
+    ///
+    /// # Returns
+    ///
+    /// A `TopicSummary` with the topic's ID, label, description, and endpoint.
     pub(crate) fn summary(&self) -> TopicSummary {
         TopicSummary {
             id: self.id.to_string(),

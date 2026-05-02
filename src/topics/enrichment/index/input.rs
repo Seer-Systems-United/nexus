@@ -1,3 +1,8 @@
+//! # Enrichment input generation
+//!
+//! Creates classification inputs from topic observations.
+//! Generates fingerprints for caching and deduplication.
+
 use crate::topics::enrichment::{ClassificationInput, QuestionEnrichment, text::short_hash};
 use crate::topics::nlp;
 use crate::topics::types::TopicObservation;

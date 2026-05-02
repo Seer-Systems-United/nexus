@@ -1,8 +1,19 @@
+//! # Ipsos download models
+//!
+//! Defines data structures for Ipsos article stubs,
+//! article details, and download outcomes.
+
 use crate::sources::Scope;
 use crate::sources::date::SimpleDate;
 use crate::sources::ipsos::server::download::DynError;
 use std::io::Error as IoError;
 
+/// Metadata stub for an Ipsos poll article found in listings.
+///
+/// # Fields
+/// - `title`: Poll title.
+/// - `article_url`: URL of the article page.
+/// - `published_on`: Publication date.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ArticleStub {
     pub title: String,
@@ -10,12 +21,18 @@ pub struct ArticleStub {
     pub published_on: SimpleDate,
 }
 
+/// Details extracted from an Ipsos article page.
+///
+/// # Fields
+/// - `title`: Poll title (may be empty).
+/// - `pdf_url`: Direct URL to the PDF.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ArticleDetails {
     pub title: String,
     pub pdf_url: String,
 }
 
+/// Tracks the outcome of downloading Ipsos polls.
 #[derive(Default)]
 pub(super) struct DownloadOutcome {
     pub(super) pdfs: Vec<super::super::IpsosPollPdf>,
@@ -25,6 +42,7 @@ pub(super) struct DownloadOutcome {
 }
 
 impl DownloadOutcome {
+    /// Record a failed download with logging.
     pub(super) fn record_failure(&mut self, stub: &ArticleStub, error: DynError) {
         self.failures += 1;
         let failure = format!("{} [{}]: {error}", stub.title, stub.article_url);
@@ -34,6 +52,10 @@ impl DownloadOutcome {
         }
     }
 
+    /// Finish the download and return collected PDFs.
+    ///
+    /// Logs a summary and returns an error if no PDFs were downloaded
+    /// but failures occurred.
     pub(super) fn finish(self, scope: Scope) -> Result<Vec<super::super::IpsosPollPdf>, DynError> {
         tracing::info!(
             source = "ipsos",

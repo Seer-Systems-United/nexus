@@ -1,3 +1,7 @@
+//! # Google OIDC callback handler
+//!
+//! Processes Google OAuth callbacks, verifies tokens, and issues JWTs.
+
 mod claims;
 mod redirect;
 

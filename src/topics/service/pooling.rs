@@ -1,8 +1,14 @@
+//! # Topic observation pooling
+//!
+//! Aggregates multiple topic observations by averaging
+//! demographic answer values across sources.
+
 use crate::topics::types::{
     DemographicValue, PooledAnswerResult, PooledDemographicResult, TopicObservation,
 };
 use std::collections::HashMap;
 
+/// Pooled value for a specific answer label.
 #[derive(Debug, Clone)]
 struct PooledValue {
     label: String,
@@ -10,6 +16,13 @@ struct PooledValue {
     count: usize,
 }
 
+/// Pool observations by averaging answer values across sources.
+///
+/// # Parameters
+/// - `observations`: Observations to pool.
+///
+/// # Returns
+/// - `Vec<PooledDemographicResult>`: Pooled demographic results.
 pub fn pool_observations(observations: &[TopicObservation]) -> Vec<PooledDemographicResult> {
     let mut demographics_by_id: HashMap<String, DemographicValue> = HashMap::new();
     let mut values: HashMap<(String, String), PooledValue> = HashMap::new();
@@ -39,17 +52,18 @@ pub fn pool_observations(observations: &[TopicObservation]) -> Vec<PooledDemogra
     sorted_pooled_results(demographics_by_id, values)
 }
 
+/// Convert pooled values into sorted demographic results.
 fn sorted_pooled_results(
     mut demographics_by_id: HashMap<String, DemographicValue>,
     values: HashMap<(String, String), PooledValue>,
 ) -> Vec<PooledDemographicResult> {
     let mut by_demographic: HashMap<String, Vec<PooledAnswerResult>> = HashMap::new();
-    for ((demographic_id, answer_id), pooled) in values {
+    for ((demographic_id, _answer_id), pooled) in values {
         by_demographic
             .entry(demographic_id)
             .or_default()
             .push(PooledAnswerResult {
-                id: answer_id,
+                id: pooled.label.clone(),
                 label: pooled.label,
                 value: pooled.total / pooled.count as f32,
                 observation_count: pooled.count,

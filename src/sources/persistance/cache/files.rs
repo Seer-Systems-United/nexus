@@ -1,16 +1,30 @@
+//! # Cache file operations
+//!
+//! Handles cache directory management, reading/writing binary cache files
+//! using postcard serialization, and freshness checking.
+
 use crate::sources::{DataCollection, Scope, Source};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 type DynError = Box<dyn std::error::Error + Send + Sync>;
+/// Cache refresh interval: 1 hour.
 const REFRESH_INTERVAL: Duration = Duration::from_secs(60 * 60);
 
-#[derive(Clone)]
+/// A cache file entry with its path and modification time.
 pub(super) struct CacheEntry {
     pub(super) path: PathBuf,
     pub(super) modified: SystemTime,
 }
 
+/// Get the cache directory path for a source and scope.
+///
+/// # Parameters
+/// - `S`: The source type.
+/// - `scope`: The query scope.
+///
+/// # Returns
+/// - `PathBuf`: Path like `data/{source_name}/{scope_key}` or with version prefix.
 pub(super) fn scoped_cache_dir<S: Source>(scope: Scope) -> PathBuf {
     let cache_key = match S::CACHE_VERSION {
         "v1" => scope.cache_key(),
@@ -20,6 +34,13 @@ pub(super) fn scoped_cache_dir<S: Source>(scope: Scope) -> PathBuf {
     PathBuf::from("data").join(S::NAME).join(cache_key)
 }
 
+/// List all cache file entries in a directory, sorted by most recent first.
+///
+/// # Parameters
+/// - `cache_dir`: The cache directory to scan.
+///
+/// # Returns
+/// - `Ok(Vec<CacheEntry>)`: Sorted list of cache entries.
 pub(super) fn cache_entries(cache_dir: &Path) -> Result<Vec<CacheEntry>, DynError> {
     let mut entries = Vec::new();
 
@@ -38,11 +59,24 @@ pub(super) fn cache_entries(cache_dir: &Path) -> Result<Vec<CacheEntry>, DynErro
     Ok(entries)
 }
 
+/// Read and deserialize a cache file.
+///
+/// # Parameters
+/// - `path`: Path to the binary cache file.
+///
+/// # Returns
+/// - `Ok(DataCollection)`: Deserialized data.
 pub(super) fn read_cache(path: &Path) -> Result<DataCollection, DynError> {
     let file_bytes = std::fs::read(path)?;
     Ok(postcard::from_bytes(&file_bytes)?)
 }
 
+/// Write data to a new cache file atomically (write to temp, then rename).
+///
+/// # Parameters
+/// - `cache_dir`: The cache directory.
+/// - `now`: Current system time (used for filename).
+/// - `data`: The data to serialize and write.
 pub(super) fn write_cache(
     cache_dir: &Path,
     now: SystemTime,
@@ -58,6 +92,14 @@ pub(super) fn write_cache(
     Ok(())
 }
 
+/// Check if a cached file is still fresh based on its modification time.
+///
+/// # Parameters
+/// - `modified`: When the cache file was last modified.
+/// - `now`: Current system time.
+///
+/// # Returns
+/// - `true` if the cache is within the refresh interval.
 pub(super) fn is_fresh(modified: SystemTime, now: SystemTime) -> bool {
     match now.duration_since(modified) {
         Ok(age) => age <= REFRESH_INTERVAL,

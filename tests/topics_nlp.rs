@@ -1,3 +1,7 @@
+//! # Topics NLP tests
+//!
+//! Tests for natural language processing topic classification.
+
 use nexus::sources::DataStructure;
 use nexus::topics::nlp::{
     clean_question_text, cluster_headline_observations, headline_candidate_match,

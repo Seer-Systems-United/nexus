@@ -1,3 +1,8 @@
+//! # Enrichment CLI module
+//!
+//! Provides CLI argument parsing and usage information
+//! for the `enrich-topics` command.
+
 mod args;
 mod parse;
 mod usage;
@@ -11,6 +16,15 @@ use crate::topics::service;
 use args::EnrichmentArgs;
 use std::collections::HashMap;
 
+/// Run the enrichment CLI with the given arguments.
+///
+/// Parses args, loads index, classifies new questions, and saves results.
+///
+/// # Parameters
+/// - `args`: CLI arguments.
+///
+/// # Returns
+/// - `Ok(())` on success.
 pub async fn run_cli(args: Vec<String>) -> Result<(), DynError> {
     if args
         .iter()

@@ -1,3 +1,8 @@
+//! # NLP models
+//!
+//! Data structures for NLP processing.
+//! Candidates, terms, clusters, and related types.
+
 use std::collections::{HashMap, HashSet};
 
 pub const MIN_TERMS: usize = 2;

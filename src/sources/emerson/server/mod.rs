@@ -1,9 +1,20 @@
+//! # Emerson server module
+//!
+//! Orchestrates downloading and extracting Emerson poll workbooks.
+//! Implements the `Source` trait for Emerson.
+
 use crate::sources::{DataCollection, Scope, Source, persistance::StorageWrapper};
 use std::io::{Error as IoError, ErrorKind};
 
 pub mod download;
 pub mod extract;
 
+/// An Emerson workbook downloaded from Google Sheets.
+///
+/// # Fields
+/// - `title`: The title of the poll/workbook.
+/// - `date`: The publication date string.
+/// - `bytes`: Raw xlsx file bytes.
 #[derive(Debug, Clone)]
 pub(crate) struct EmersonWorkbook {
     pub title: String,
@@ -11,6 +22,16 @@ pub(crate) struct EmersonWorkbook {
     pub bytes: Vec<u8>,
 }
 
+/// Load Emerson data for the given scope, with caching.
+///
+/// # Parameters
+/// - `scope`: The query scope (latest, last N days, etc.).
+///
+/// # Returns
+/// - `Ok(DataCollection)`: The loaded and extracted poll data.
+///
+/// # Errors
+/// - Returns an error if download and extraction fail and no cache is available.
 async fn load_emerson(
     scope: Scope,
 ) -> Result<DataCollection, Box<dyn std::error::Error + Send + Sync>> {

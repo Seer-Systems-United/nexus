@@ -1,3 +1,8 @@
+//! # Ipsos topic matching
+//!
+//! Maps Ipsos data structures to canonical topics.
+//! Handles various Ipsos-specific question patterns.
+
 use crate::sources::DataStructure;
 use crate::topics::catalog::{
     ECONOMY_APPROVAL_ID, FOREIGN_POLICY_APPROVAL_ID, GENERIC_BALLOT_ID, IMMIGRATION_APPROVAL_ID,

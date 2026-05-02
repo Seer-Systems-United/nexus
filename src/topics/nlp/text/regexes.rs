@@ -1,3 +1,8 @@
+//! # Regex patterns
+//!
+//! Compiled regex patterns for text processing.
+//! Uses lazy initialization for efficiency.
+
 use regex::Regex;
 use std::sync::OnceLock;
 

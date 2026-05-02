@@ -1,9 +1,22 @@
+//! # Ipsos server module
+//!
+//! Orchestrates downloading and extracting Ipsos poll PDFs.
+//! Implements the `Source` trait for Ipsos.
+
 use crate::sources::{DataCollection, Scope, Source, persistance::StorageWrapper};
 use std::io::{Error as IoError, ErrorKind};
 
 pub mod download;
 pub mod extract;
 
+/// An Ipsos poll PDF with metadata.
+///
+/// # Fields
+/// - `title`: Poll title.
+/// - `published_on`: Publication date string.
+/// - `article_url`: URL of the article/page.
+/// - `pdf_url`: Direct URL to the PDF.
+/// - `bytes`: Raw PDF bytes.
 #[derive(Debug, Clone)]
 pub(crate) struct IpsosPollPdf {
     pub title: String,
@@ -13,6 +26,16 @@ pub(crate) struct IpsosPollPdf {
     pub bytes: Vec<u8>,
 }
 
+/// Load Ipsos data for the given scope, with caching.
+///
+/// # Parameters
+/// - `scope`: The query scope (latest, last N days, etc.).
+///
+/// # Returns
+/// - `Ok(DataCollection)`: The loaded and extracted poll data.
+///
+/// # Errors
+/// - Returns an error if download and extraction fail and no cache is available.
 async fn load_ipsos(
     scope: Scope,
 ) -> Result<DataCollection, Box<dyn std::error::Error + Send + Sync>> {

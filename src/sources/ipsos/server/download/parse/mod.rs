@@ -1,3 +1,7 @@
+//! # Ipsos download parsing
+//!
+//! Parses Ipsos landing pages and article pages to extract download stubs.
+
 mod article;
 mod landing;
 

@@ -1,3 +1,8 @@
+//! # Phrase matching
+//!
+//! Detects multi-word phrases in question text.
+//! Uses regex patterns for common phrases.
+
 use crate::topics::nlp::models::Term;
 use regex::Regex;
 

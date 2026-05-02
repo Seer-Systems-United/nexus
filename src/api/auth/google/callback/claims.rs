@@ -1,3 +1,7 @@
+//! # Google OIDC claims verifier
+//!
+//! Verifies Google OAuth access token hashes and ID token claims.
+
 use crate::api::error::ApiError;
 use openidconnect::{AccessTokenHash, OAuth2TokenResponse};
 

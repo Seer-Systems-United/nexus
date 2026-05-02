@@ -1,3 +1,7 @@
+//! # Core stable topic endpoints
+//!
+//! Handles endpoints for presidential approval and right direction/wrong track topics.
+
 use super::stable_topic_endpoint;
 use crate::api::error::ApiError;
 use crate::api::topics::TopicQuery;
@@ -20,6 +24,17 @@ use axum::extract::Query;
         (status = 503, description = "Topic data unavailable", body = crate::api::error::ApiErrorBody),
     )
 )]
+/// Handle GET /topics/presidential-approval endpoint.
+///
+/// # Parameters
+/// - `query`: Topic query with scope and count parameters.
+///
+/// # Returns
+/// - `Ok(Json<TopicCollection>)`: Presidential approval topic data.
+///
+/// # Errors
+/// - `400 Bad Request`: Invalid scope query.
+/// - `503 Service Unavailable`: Topic data failed to load.
 pub async fn get_presidential_approval(
     Query(query): Query<TopicQuery>,
 ) -> Result<Json<TopicCollection>, ApiError> {
@@ -41,6 +56,17 @@ pub async fn get_presidential_approval(
         (status = 503, description = "Topic data unavailable", body = crate::api::error::ApiErrorBody),
     )
 )]
+/// Handle GET /topics/right-direction endpoint.
+///
+/// # Parameters
+/// - `query`: Topic query with scope and count parameters.
+///
+/// # Returns
+/// - `Ok(Json<TopicCollection>)`: Right direction/wrong track topic data.
+///
+/// # Errors
+/// - `400 Bad Request`: Invalid scope query.
+/// - `503 Service Unavailable`: Topic data failed to load.
 pub async fn get_right_direction(
     Query(query): Query<TopicQuery>,
 ) -> Result<Json<TopicCollection>, ApiError> {

@@ -1,3 +1,8 @@
+//! # Enrichment index storage
+//!
+//! Loads and saves the question enrichment index to disk.
+//! Uses JSON format with versioning support.
+
 use crate::topics::enrichment::{DEFAULT_INDEX_PATH, DynError, QuestionIndex};
 use std::fs;
 use std::io::ErrorKind;

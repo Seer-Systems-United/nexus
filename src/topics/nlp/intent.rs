@@ -1,5 +1,11 @@
+//! # Intent detection
+//!
+//! Detects the intent of a polling question.
+//! Looks for support/oppose, approval, direction, etc.
+
 use crate::topics::types::TopicObservation;
 
+/// Extract intent from an observation's answer labels.
 pub fn intent_from_observation(observation: &TopicObservation) -> Option<String> {
     let mut answer_text = String::new();
     for demographic in &observation.demographics {

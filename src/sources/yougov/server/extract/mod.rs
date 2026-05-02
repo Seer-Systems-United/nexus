@@ -1,3 +1,8 @@
+//! # YouGov extraction module
+//!
+//! Extracts poll data from YouGov/Economist PDFs.
+//! Parses questions into crosstab structures with templates.
+
 use crate::sources::{DataCollection, DataStructure};
 use std::error::Error;
 
@@ -5,6 +10,22 @@ mod parse;
 mod templates;
 mod utils;
 
+/// Document title marker in extracted text.
+pub const DOCUMENT_TITLE: &str = "The Economist/YouGov Poll";
+
+/// Extract YouGov data from a list of PDF byte arrays.
+///
+/// For each PDF, extracts text and parses questions using templates.
+/// Prepends date/title prefix to each data structure.
+///
+/// # Parameters
+/// - `pdfs`: Downloaded PDF byte arrays.
+///
+/// # Returns
+/// - `Ok(DataCollection)`: Combined data from all PDFs.
+///
+/// # Errors
+/// - Returns an error if no valid data is found.
 pub(crate) fn extract_yougov_data(
     pdfs: &[Vec<u8>],
 ) -> Result<DataCollection, Box<dyn Error + Send + Sync>> {
@@ -35,11 +56,11 @@ pub(crate) fn extract_yougov_data(
                 DataStructure::BarGraph { title, .. }
                 | DataStructure::LineGraph { title, .. }
                 | DataStructure::PieChart { title, .. } => {
-                    *title = format!("{}: {}", prefix, title);
+                    *title = format!("{}: {title}", prefix);
                 }
                 DataStructure::Crosstab { title, prompt, .. } => {
-                    *title = format!("{}: {}", prefix, title);
-                    *prompt = format!("{}: {}", prefix, prompt);
+                    *title = format!("{}: {title}", prefix);
+                    *prompt = format!("{}: {prompt}", prefix);
                 }
                 DataStructure::Unstructured { .. } => {}
             }
@@ -67,6 +88,16 @@ pub(crate) fn extract_yougov_data(
     })
 }
 
+/// Extract the title and optional subtitle from document header lines.
+///
+/// # Parameters
+/// - `lines`: All lines from the PDF text extraction.
+///
+/// # Returns
+/// - `Ok((title, optional_subtitle))` if found.
+///
+/// # Errors
+/// - Returns an error if no title is found.
 pub fn extract_document_header(
     lines: &[String],
 ) -> Result<(String, Option<String>), Box<dyn Error + Send + Sync>> {

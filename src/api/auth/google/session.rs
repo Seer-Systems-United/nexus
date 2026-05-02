@@ -1,3 +1,7 @@
+//! # Google OIDC session store
+//!
+//! Manages active OIDC login sessions with expiration.
+
 use std::time::{Duration, Instant};
 
 use openidconnect::{CsrfToken, Nonce};

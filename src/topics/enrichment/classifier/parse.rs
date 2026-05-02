@@ -1,7 +1,21 @@
+//! # Classifier output parser
+//!
+//! Parses LLM JSON output into structured classification results.
+//! Handles confidence normalization and subject deduplication.
+
 use crate::topics::enrichment::{ClassificationOutput, DynError, text::slug_id};
 use std::collections::HashSet;
 use std::io::{Error as IoError, ErrorKind};
 
+/// Parse raw LLM output into a `ClassificationOutput`.
+///
+/// Extracts JSON object, normalizes confidence and subject.
+///
+/// # Parameters
+/// - `raw`: Raw LLM output text.
+///
+/// # Returns
+/// - `Ok(ClassificationOutput)` with normalized fields.
 pub fn parse_classifier_output(raw: &str) -> Result<ClassificationOutput, DynError> {
     let json_text = extract_json_object(raw).ok_or_else(|| {
         IoError::new(

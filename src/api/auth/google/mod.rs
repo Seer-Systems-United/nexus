@@ -1,3 +1,13 @@
+//! # Google OpenID Connect authentication module
+//!
+//! Handles Google OAuth 2.0/OpenID Connect login flows, including
+//! authorization URL generation, callback handling, and session management.
+//!
+//! ## Module structure
+//! - `callback`: Google OIDC callback processing logic.
+//! - `client`: Google OIDC HTTP client and provider discovery.
+//! - `session`: OIDC state storage in user sessions.
+
 mod callback;
 mod client;
 mod session;
@@ -11,6 +21,13 @@ use serde::Deserialize;
 use crate::AppState;
 use crate::api::error::ApiError;
 
+/// Query parameters returned by Google after OpenID Connect authorization.
+///
+/// # Fields
+/// - `code`: Authorization code to exchange for tokens (if successful).
+/// - `state`: CSRF state value to validate the callback.
+/// - `error`: Error code if authorization failed.
+/// - `error_description`: Human-readable error description.
 #[derive(Debug, Deserialize)]
 pub struct GoogleCallbackQuery {
     code: Option<String>,
@@ -28,6 +45,16 @@ pub struct GoogleCallbackQuery {
         (status = 503, description = "Google OpenID Connect is not configured", body = crate::api::error::ApiErrorBody),
     )
 )]
+/// Handle GET /auth/google/login to initiate Google OpenID Connect flow.
+///
+/// # Parameters
+/// - `state`: Shared application state with Google OIDC config.
+///
+/// # Returns
+/// - `Ok(Redirect)`: Temporary redirect to Google's authorization URL.
+///
+/// # Errors
+/// - `503 Service Unavailable`: Google OIDC not configured or provider discovery fails.
 pub async fn get_google_login(State(state): State<AppState>) -> Result<Redirect, ApiError> {
     let config = state.google_oidc.clone();
     let http_client = client::http_client()?;
@@ -67,6 +94,18 @@ pub async fn get_google_login(State(state): State<AppState>) -> Result<Redirect,
         (status = 503, description = "Google OpenID Connect or database is unavailable", body = crate::api::error::ApiErrorBody),
     )
 )]
+/// Handle GET /auth/google/callback to process Google's authorization response.
+///
+/// # Parameters
+/// - `state`: Shared application state with OIDC session storage.
+/// - `query`: Query parameters returned by Google.
+///
+/// # Returns
+/// - `Ok(Redirect)`: Redirect to frontend auth callback with JWT token.
+///
+/// # Errors
+/// - `400 Bad Request`: Missing authorization code/state, or Google returned an error.
+/// - `503 Service Unavailable`: Callback processing or database failure.
 pub async fn get_google_callback(
     State(state): State<AppState>,
     Query(query): Query<GoogleCallbackQuery>,

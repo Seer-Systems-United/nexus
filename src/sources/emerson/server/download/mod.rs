@@ -1,3 +1,8 @@
+//! # Emerson download module
+//!
+//! Downloads Emerson poll workbooks from blog pages and Google Sheets.
+//! Handles pagination, release parsing, and workbook extraction.
+
 mod network;
 mod parse;
 mod release;
@@ -10,8 +15,22 @@ pub use utils::emerson_blog_page_url;
 use crate::sources::{Scope, date::SimpleDate};
 use std::error::Error;
 
+/// Boxed dynamic error type for Emerson operations.
 pub type DynError = Box<dyn Error + Send + Sync>;
 
+/// Download Emerson workbooks for the given scope.
+///
+/// Iterates through blog pages, parsing releases and downloading workbooks
+/// until the scope cutoff is reached or entry limit is hit.
+///
+/// # Parameters
+/// - `scope`: The query scope defining date range or entry limit.
+///
+/// # Returns
+/// - `Ok(Vec<EmersonWorkbook>)`: Downloaded workbooks.
+///
+/// # Errors
+/// - Returns an error if download fails and no cache is available.
 pub(crate) async fn download_emerson_data(
     scope: Scope,
 ) -> Result<Vec<crate::sources::emerson::server::EmersonWorkbook>, DynError> {
@@ -41,6 +60,11 @@ pub(crate) async fn download_emerson_data(
     state.finish()
 }
 
+/// Process a single blog page for releases.
+///
+/// # Returns
+/// - `Ok(true)`: Page contains releases within scope.
+/// - `Ok(false)`: Page has no scoped releases.
 async fn process_page(
     client: &reqwest::Client,
     page_number: usize,

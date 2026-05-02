@@ -1,3 +1,7 @@
+//! # Account number generation
+//!
+//! Generates random 16-digit account numbers for password-based users.
+
 use aws_lc_rs::rand::{SecureRandom, SystemRandom};
 
 const ACCOUNT_NUMBER_LEN: usize = 16;

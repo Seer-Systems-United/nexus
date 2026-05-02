@@ -1,3 +1,7 @@
+//! # Demographics types
+//!
+//! Data types for demographic groups and values in polling data.
+
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 

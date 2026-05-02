@@ -1,3 +1,7 @@
+//! # Gallup download tests
+//!
+//! Tests for Gallup article parsing and download URL logic.
+
 use nexus::sources::gallup::server::download::{
     datawrapper_dataset_url, gallup_search_page_url, parse_article_assets, parse_search_stubs,
 };

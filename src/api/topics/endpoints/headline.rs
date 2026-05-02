@@ -1,3 +1,8 @@
+//! # Headline topic endpoints
+//!
+//! Handles listing stable topics and discovering recurring headline topics
+//! from recent polling data.
+
 use crate::api::error::ApiError;
 use crate::api::topics::{HeadlineQuery, query};
 use crate::sources::Scope;
@@ -13,6 +18,10 @@ use axum::extract::Query;
         (status = 200, description = "Stable canonical polling topics", body = [TopicSummary]),
     )
 )]
+/// Handle GET /topics/ to list all stable canonical topics.
+///
+/// # Returns
+/// - `Json<Vec<TopicSummary>>`: List of stable topic summaries.
 pub async fn list_topics() -> Json<Vec<TopicSummary>> {
     Json(crate::topics::catalog::stable_topics())
 }
@@ -33,6 +42,17 @@ pub async fn list_topics() -> Json<Vec<TopicSummary>> {
         (status = 503, description = "Topic data unavailable", body = crate::api::error::ApiErrorBody),
     )
 )]
+/// Handle GET /topics/headlines to discover recurring headline topics.
+///
+/// # Parameters
+/// - `query`: Query parameters for scope, count, and minimum poll threshold.
+///
+/// # Returns
+/// - `Ok(Json<Vec<HeadlineTopicSummary>>)`: List of recurring headline topics.
+///
+/// # Errors
+/// - `400 Bad Request`: Invalid scope query.
+/// - `503 Service Unavailable`: Topic data failed to load.
 pub async fn get_headline_topics(
     Query(query): Query<HeadlineQuery>,
 ) -> Result<Json<Vec<HeadlineTopicSummary>>, ApiError> {

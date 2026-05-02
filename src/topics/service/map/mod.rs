@@ -1,3 +1,8 @@
+//! # Topic mapping module
+//!
+//! Maps polling source data structures to canonical topic observations.
+//! Uses mappings and NLP to identify the correct topic for each structure.
+
 mod demographics;
 
 use crate::sources::{DataCollection, DataStructure, SourceId};
@@ -5,6 +10,14 @@ use crate::topics::mappings::{self, TopicMatch};
 use crate::topics::nlp;
 use crate::topics::types::TopicObservation;
 
+/// Map all data structures in a source collection to topic observations.
+///
+/// # Parameters
+/// - `source`: The source ID.
+/// - `collection`: The data collection to map.
+///
+/// # Returns
+/// - `Vec<TopicObservation>`: Mapped observations.
 pub fn map_source_collection(
     source: SourceId,
     collection: &DataCollection,
@@ -21,6 +34,7 @@ pub fn map_source_collection(
         .collect()
 }
 
+/// Create a topic observation from a data structure and topic match.
 fn observation_from_structure(
     source: SourceId,
     collection: &DataCollection,

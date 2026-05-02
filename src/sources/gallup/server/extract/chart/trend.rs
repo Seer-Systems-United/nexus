@@ -1,6 +1,24 @@
+//! # Gallup line graph parser
+//!
+//! Detects temporal data in CSV rows and converts
+//! them into `DataStructure::LineGraph`.
+
 use super::text::{looks_temporal, parse_number};
 use crate::sources::{DataSeries, DataStructure};
 
+/// Try to parse CSV rows as a line graph.
+///
+/// Checks if the first column contains temporal values (years/dates).
+/// If so, creates a line graph with one series per column.
+///
+/// # Parameters
+/// - `title`: The chart title.
+/// - `headers`: CSV column headers.
+/// - `rows`: All data rows.
+///
+/// # Returns
+/// - `Some(DataStructure::LineGraph)` if temporal data is detected.
+/// - `None` if insufficient temporal data.
 pub(super) fn line_graph_from_rows(
     title: &str,
     headers: &[String],
@@ -33,6 +51,12 @@ pub(super) fn line_graph_from_rows(
     })
 }
 
+/// Extract a single data series from a CSV column.
+///
+/// # Parameters
+/// - `rows`: All data rows.
+/// - `index`: Column index for this series.
+/// - `header`: Series label.
 fn series_from_column(rows: &[Vec<String>], index: usize, header: &str) -> Option<DataSeries> {
     if header.is_empty() {
         return None;

@@ -1,3 +1,8 @@
+//! # Common mapping utilities
+//!
+//! Shared utilities for topic matching.
+//! Handles text normalization and date extraction.
+
 mod stable;
 
 use crate::sources::DataStructure;

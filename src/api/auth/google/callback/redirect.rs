@@ -1,3 +1,7 @@
+//! # Frontend redirect helper
+//!
+//! Builds frontend redirect URLs after successful Google OIDC login.
+
 use crate::api::auth::types::{AuthResponse, UserResponse};
 use crate::state::GoogleOidcConfig;
 

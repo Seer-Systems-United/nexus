@@ -1,3 +1,8 @@
+//! # Topic endpoint handlers
+//!
+//! Aggregates and re-exports topic endpoint handlers for stable, headline,
+//! and dynamic topic queries.
+
 pub mod dynamic;
 pub mod headline;
 pub mod stable;
@@ -13,6 +18,18 @@ use crate::api::topics::TopicQuery;
 use crate::topics::types::TopicCollection;
 use axum::Json;
 
+/// Shared handler for loading a topic collection by topic ID and query parameters.
+///
+/// # Parameters
+/// - `topic_id`: The stable or headline topic identifier.
+/// - `query`: The topic query with scope parameters.
+///
+/// # Returns
+/// - `Ok(Json<TopicCollection>)`: The topic data collection.
+///
+/// # Errors
+/// - `404 Not Found`: Topic data file not found.
+/// - `503 Service Unavailable`: Topic data failed to load.
 pub(super) async fn topic_collection(
     topic_id: &str,
     query: &TopicQuery,
@@ -25,6 +42,13 @@ pub(super) async fn topic_collection(
         .map_err(topic_error)
 }
 
+/// Convert topic service errors into appropriate API errors.
+///
+/// # Parameters
+/// - `error`: The boxed error from the topic service.
+///
+/// # Returns
+/// - `ApiError`: Corresponding API error (not found or service unavailable).
 pub(super) fn topic_error(error: Box<dyn std::error::Error + Send + Sync>) -> ApiError {
     if let Some(io_error) = error.downcast_ref::<std::io::Error>()
         && io_error.kind() == std::io::ErrorKind::NotFound

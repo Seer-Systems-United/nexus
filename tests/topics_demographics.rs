@@ -1,3 +1,7 @@
+//! # Topics demographics tests
+//!
+//! Tests for demographic mapping from polling data panels.
+
 use nexus::sources::{DataGroup, DataPanel};
 use nexus::topics::demographics::demographic_for_panel_column;
 

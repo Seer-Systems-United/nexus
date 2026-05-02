@@ -1,3 +1,9 @@
+//! # Natural Language Processing module
+//!
+//! NLP-based topic classification and clustering.
+//! Extracts terms, clusters headline observations,
+//! and generates canonical topic IDs and labels.
+
 mod cluster;
 mod intent;
 mod labels;

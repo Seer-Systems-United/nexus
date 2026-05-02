@@ -36,4 +36,4 @@ frontend/.vite
 .postgres-test
 
 .env
-data
+*.bin

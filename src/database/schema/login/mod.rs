@@ -1,3 +1,7 @@
+//! # Login schema
+//!
+//! Diesel schema definition for the `logins` table.
+
 use diesel::prelude::*;
 
 use crate::database::schema::user::users;

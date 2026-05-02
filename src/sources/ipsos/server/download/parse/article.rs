@@ -1,3 +1,7 @@
+//! # Ipsos article page parser
+//!
+//! Parses individual Ipsos article pages to extract poll details.
+
 use crate::sources::ipsos::server::download::DynError;
 use crate::sources::ipsos::server::download::models::ArticleDetails;
 use crate::sources::ipsos::server::download::text::{absolute_url, clean_url, text_contents};

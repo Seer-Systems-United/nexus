@@ -1,3 +1,8 @@
+//! # Cluster label generation
+//!
+//! Generates human-readable labels from cluster terms.
+//! Selects ordered terms and frequent terms.
+
 use super::models::{Cluster, ClusterTerm, MAX_LABEL_TERMS, Term};
 use std::collections::{HashMap, HashSet};
 

@@ -1,3 +1,8 @@
+//! # Demographics module
+//!
+//! Maps polling data structures to canonical demographic categories.
+//! Provides label normalization and demographic group identification.
+
 mod groups;
 mod labels;
 
@@ -6,6 +11,14 @@ use crate::topics::types::DemographicValue;
 use groups::group_for_column;
 use labels::{demographic_for_label, normalize_text};
 
+/// Get the demographic value for a column in a data panel.
+///
+/// # Parameters
+/// - `panel`: The data panel containing the column.
+/// - `column_index`: Index of the column.
+///
+/// # Returns
+/// - `DemographicValue` with ID and label.
 pub fn demographic_for_panel_column(panel: &DataPanel, column_index: usize) -> DemographicValue {
     let column = panel
         .columns
@@ -16,6 +29,10 @@ pub fn demographic_for_panel_column(panel: &DataPanel, column_index: usize) -> D
     demographic_for_label(&column, group)
 }
 
+/// Get the "Total" demographic value.
+///
+/// # Returns
+/// - `DemographicValue` with ID "total".
 pub fn total_demographic() -> DemographicValue {
     demographic_for_label("Total", None)
 }

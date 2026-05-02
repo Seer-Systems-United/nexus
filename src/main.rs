@@ -1,3 +1,20 @@
+//! # Nexus server entry point
+//!
+//! This binary is the main entry point for the Nexus Public Polling Federation
+//! System. It handles two execution modes:
+//!
+//! 1. **Server mode** (default): Starts the Axum HTTP server with the React
+//!    frontend, API endpoints, OpenAPI docs, and health checks.
+//! 2. **CLI mode** (`enrich-topics`): Runs topic enrichment via the
+//!    `topics::enrichment::run_cli` interface for batch processing.
+//!
+//! ## Server configuration
+//!
+//! - Listens on `127.0.0.1:8080` by default.
+//! - Serves the React frontend from `frontend/dist`.
+//! - Exposes OpenAPI documentation at `/docs` via Scalar.
+//! - Uses `RUST_LOG` or `nexus=info,tower_http=info` for tracing.
+
 use axum::{Router, routing::get};
 use nexus::{AppState, api, health, topics};
 use tokio::net::TcpListener;
@@ -9,6 +26,21 @@ use tracing::{Level, info};
 use tracing_subscriber::{EnvFilter, fmt};
 use utoipa_scalar::{Scalar, Servable};
 
+/// Entry point for the Nexus server or CLI enrichment tool.
+///
+/// # Execution modes
+///
+/// - **Default (no args)**: Starts the Axum HTTP server with API, docs,
+///   and hosted React frontend.
+/// - **`enrich-topics` arg**: Runs the topic enrichment CLI and exits.
+///
+/// # Panics
+///
+/// Panics if:
+///
+/// - Tracing initialization fails.
+/// - TCP listener cannot bind to `127.0.0.1:8080`.
+/// - Database or state initialization fails.
 #[tokio::main]
 async fn main() {
     init_tracing();
@@ -49,6 +81,17 @@ async fn main() {
     axum::serve(listener, app).await.expect("server failed");
 }
 
+/// Initializes the `tracing` subscriber with environment-based filtering.
+///
+/// # Configuration
+///
+/// - Reads `RUST_LOG` environment variable if set.
+/// - Falls back to `nexus=info,tower_http=info` if `RUST_LOG` is not set.
+///
+/// # Behavior
+///
+/// - Disables target printing in log output for cleaner logs.
+/// - Uses compact formatting for human-readable output.
 fn init_tracing() {
     let env_filter = EnvFilter::try_from_default_env()
         .unwrap_or_else(|_| EnvFilter::new("nexus=info,tower_http=info"));

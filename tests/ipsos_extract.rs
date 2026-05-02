@@ -1,3 +1,7 @@
+//! # Ipsos extraction tests
+//!
+//! Tests for Ipsos question parsing and extraction logic.
+
 use nexus::sources::DataStructure;
 use nexus::sources::ipsos::server::extract::{
     is_question_title, normalize_line, parse_questions, parse_row,

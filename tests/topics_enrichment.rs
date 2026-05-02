@@ -1,3 +1,7 @@
+//! # Topics enrichment tests
+//!
+//! Tests for topic enrichment classification and parsing.
+
 use nexus::sources::Scope;
 use nexus::topics::enrichment::{
     QuestionEnrichment, applicable_topic_id, parse_classifier_output, parse_scope,

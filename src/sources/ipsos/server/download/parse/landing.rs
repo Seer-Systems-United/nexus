@@ -1,3 +1,7 @@
+//! # Ipsos landing page parser
+//!
+//! Parses Ipsos poll listing pages to extract article stubs.
+
 use crate::sources::ipsos::server::download::DynError;
 use crate::sources::ipsos::server::download::models::ArticleStub;
 use crate::sources::ipsos::server::download::text::{

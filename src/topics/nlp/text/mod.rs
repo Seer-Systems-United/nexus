@@ -1,3 +1,8 @@
+//! # Text processing module
+//!
+//! Normalizes and cleans question text.
+//! Handles source-specific cleaning and code stripping.
+
 mod battery;
 mod clean;
 mod regexes;

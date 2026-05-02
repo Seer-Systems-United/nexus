@@ -1,9 +1,24 @@
-use crate::sources::{DataCollection, Scope, persistance::StorageWrapper};
+//! # YouGov server module
+//!
+//! Orchestrates downloading and extracting YouGov poll PDFs.
+//! Implements the `Source` trait for YouGov.
+
+use crate::sources::{DataCollection, Scope, Source, persistance::StorageWrapper};
 
 pub mod download;
 
 pub mod extract;
 
+/// Load YouGov data for the given scope, with caching.
+///
+/// # Parameters
+/// - `scope`: The query scope (latest, last N days, etc.).
+///
+/// # Returns
+/// - `Ok(DataCollection)`: The loaded and extracted poll data.
+///
+/// # Errors
+/// - Returns an error if download and extraction fail.
 async fn load_yougov(
     scope: Scope,
 ) -> Result<DataCollection, Box<dyn std::error::Error + Send + Sync>> {

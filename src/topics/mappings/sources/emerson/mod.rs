@@ -1,3 +1,7 @@
+//! # Emerson topic matching
+//!
+//! Maps Emerson data structures to canonical topics.
+
 use crate::sources::DataStructure;
 use crate::topics::mappings::{TopicMatch, common};
 

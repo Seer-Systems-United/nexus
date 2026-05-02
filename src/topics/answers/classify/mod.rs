@@ -1,3 +1,8 @@
+//! # Answer classification module
+//!
+//! Classifies answer labels into canonical forms.
+//! Handles approval, favorability, direction, and ballot answers.
+
 mod approval;
 mod ballot;
 
@@ -10,6 +15,14 @@ use crate::topics::catalog::{
     INFLATION_APPROVAL_ID, PRESIDENTIAL_APPROVAL_ID, RIGHT_DIRECTION_ID, TRUMP_FAVORABILITY_ID,
 };
 
+/// Map an answer label to a canonical answer based on topic ID.
+///
+/// # Parameters
+/// - `topic_id`: The topic ID for topic-specific handling.
+/// - `label`: The raw answer label to classify.
+///
+/// # Returns
+/// - `MappedAnswer` with canonical ID, label, and priority.
 pub fn map_answer(topic_id: &str, label: &str) -> MappedAnswer {
     let normalized = text::normalize_text(label);
     let lower = normalized.to_ascii_lowercase();
@@ -38,6 +51,7 @@ pub fn map_answer(topic_id: &str, label: &str) -> MappedAnswer {
     generic_answer(topic_id, &normalized)
 }
 
+/// Check if a topic ID is an approval topic.
 fn is_approval_topic(topic_id: &str) -> bool {
     matches!(
         topic_id,
@@ -49,6 +63,13 @@ fn is_approval_topic(topic_id: &str) -> bool {
     )
 }
 
+/// Check if an answer is "unsure" type.
+///
+/// # Parameters
+/// - `label`: The normalized answer label.
+///
+/// # Returns
+/// - `Some(MappedAnswer)` if it matches unsure patterns.
 pub fn unsure_answer(label: &str) -> Option<MappedAnswer> {
     let lower = label.to_ascii_lowercase();
     if lower.contains("don't know")

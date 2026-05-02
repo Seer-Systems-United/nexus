@@ -1,3 +1,7 @@
+//! # Ipsos parse module re-exports
+//!
+//! Re-exports parsing functions for Ipsos PDF text.
+
 mod columns;
 mod questions;
 pub mod rows;

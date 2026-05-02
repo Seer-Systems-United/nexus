@@ -1,9 +1,22 @@
+//! # Demographic mapping from data structures
+//!
+//! Extracts demographic results from polling data structures
+//! and normalizes them to canonical answer formats.
+
 use crate::sources::{DataPanel, DataStructure};
 use crate::topics::answers;
 use crate::topics::demographics;
 use crate::topics::types::{AnswerResult, DemographicResult};
 use std::collections::HashSet;
 
+/// Extract demographic results from a data structure.
+///
+/// # Parameters
+/// - `topic_id`: The canonical topic ID.
+/// - `structure`: The data structure to extract from.
+///
+/// # Returns
+/// - `Vec<DemographicResult>`: Extracted demographic breakdowns.
 pub fn demographics_from_structure(
     topic_id: &str,
     structure: &DataStructure,
@@ -16,9 +29,7 @@ pub fn demographics_from_structure(
         DataStructure::BarGraph { x, y, .. } => {
             let answers = answers::normalize_answers(
                 topic_id,
-                x.iter()
-                    .zip(y.iter())
-                    .map(|(label, value)| (label.as_str(), *value)),
+                x.iter().zip(y.iter()).map(|(label, value)| (label.as_str(), *value)),
             );
             non_empty_total(answers).into_iter().collect()
         }
@@ -49,6 +60,7 @@ pub fn demographics_from_structure(
     dedupe_demographics(demographics)
 }
 
+/// Extract demographic results from a single crosstab panel.
 fn panel_demographics(topic_id: &str, panel: &DataPanel) -> Vec<DemographicResult> {
     panel
         .columns
@@ -71,6 +83,7 @@ fn panel_demographics(topic_id: &str, panel: &DataPanel) -> Vec<DemographicResul
         .collect()
 }
 
+/// Wrap answers in a total demographic result if not empty.
 fn non_empty_total(answers: Vec<AnswerResult>) -> Option<DemographicResult> {
     (!answers.is_empty()).then(|| DemographicResult {
         demographic: demographics::total_demographic(),
@@ -78,6 +91,7 @@ fn non_empty_total(answers: Vec<AnswerResult>) -> Option<DemographicResult> {
     })
 }
 
+/// Remove duplicate demographics by ID.
 fn dedupe_demographics(demographics: Vec<DemographicResult>) -> Vec<DemographicResult> {
     let mut seen = HashSet::new();
     demographics

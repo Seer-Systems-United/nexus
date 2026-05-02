@@ -1,6 +1,20 @@
+//! # Query scope types for polling sources
+//!
+//! Defines the `Scope` enum for specifying how much polling data
+//! to load: latest, last N entries, or time-based windows.
+
 use std::error::Error;
 use std::fmt;
 
+/// Scope for loading polling source data.
+///
+/// # Variants
+/// - `Latest`: Only the most recent poll.
+/// - `LastNEntries(n)`: Last n poll entries.
+/// - `LastDays(n)`: Polls from the last n days.
+/// - `LastWeeks(n)`: Polls from the last n weeks.
+/// - `LastMonths(n)`: Polls from the last n months.
+/// - `LastYears(n)`: Polls from the last n years.
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, utoipa::ToSchema,
 )]
@@ -20,6 +34,10 @@ impl Default for Scope {
 }
 
 impl Scope {
+    /// Generate a cache key string for this scope.
+    ///
+    /// # Returns
+    /// - A string like "latest", "last-5-entries", "last-30-days", etc.
     pub(crate) fn cache_key(self) -> String {
         match self {
             Self::Latest => "latest".to_string(),
@@ -31,6 +49,7 @@ impl Scope {
         }
     }
 
+    /// Generate a human-readable label for this scope.
     pub(crate) fn collection_label(self) -> String {
         match self {
             Self::Latest => "Latest".to_string(),
@@ -42,6 +61,11 @@ impl Scope {
         }
     }
 
+    /// Get the maximum number of entries to return (if applicable).
+    ///
+    /// # Returns
+    /// - `Some(n)` for `LastNEntries`.
+    /// - `None` for other scopes (unlimited by entry count).
     pub(crate) fn entry_limit(self) -> Option<usize> {
         match self {
             Self::Latest => Some(1),
@@ -52,6 +76,14 @@ impl Scope {
         }
     }
 
+    /// Calculate the cutoff date for this scope based on today's date.
+    ///
+    /// # Returns
+    /// - `Ok(Some(SimpleDate))`: The cutoff date.
+    /// - `Ok(None)`: No cutoff needed (Latest or LastNEntries).
+    ///
+    /// # Errors
+    /// - Returns an error if date calculation fails.
     pub(crate) fn cutoff_date(
         self,
     ) -> Result<Option<crate::sources::date::SimpleDate>, Box<dyn Error + Send + Sync>> {

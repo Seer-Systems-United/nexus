@@ -1,3 +1,7 @@
+//! # Gallup extraction tests
+//!
+//! Tests for Gallup chart CSV parsing and extraction logic.
+
 use nexus::sources::DataStructure;
 use nexus::sources::gallup::server::extract::parse_chart_csv;
 

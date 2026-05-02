@@ -1,3 +1,8 @@
+//! # Answer normalization module
+//!
+//! Normalizes polling answer labels to canonical forms.
+//! Handles support/oppose, worth it, and topic-specific answers.
+
 mod aggregate;
 mod classify;
 mod support;
@@ -8,6 +13,12 @@ use support::text;
 
 pub use aggregate::normalize_answers;
 
+/// Create a mapped answer with a given ID and label.
+///
+/// # Parameters
+/// - `id`: The answer ID string.
+/// - `label`: The display label.
+/// - `priority`: Priority for merge operations (higher wins).
 fn answer(id: &str, label: &str, priority: u8) -> models::MappedAnswer {
     models::MappedAnswer {
         id: id.to_string(),
@@ -16,6 +27,14 @@ fn answer(id: &str, label: &str, priority: u8) -> models::MappedAnswer {
     }
 }
 
+/// Map a normalized answer string to a canonical answer.
+///
+/// # Parameters
+/// - `topic_id`: The topic ID for topic-specific handling.
+/// - `normalized`: The normalized answer string.
+///
+/// # Returns
+/// - `MappedAnswer` with appropriate ID and label.
 fn generic_answer(topic_id: &str, normalized: &str) -> models::MappedAnswer {
     let lower = normalized.to_ascii_lowercase();
 
@@ -48,6 +67,7 @@ fn generic_answer(topic_id: &str, normalized: &str) -> models::MappedAnswer {
     }
 }
 
+/// Convert an aggregated answer to an `AnswerResult`.
 fn to_answer_result(id: String, answer: models::AggregatedAnswer) -> AnswerResult {
     AnswerResult {
         id,

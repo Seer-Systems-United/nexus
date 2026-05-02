@@ -1,3 +1,12 @@
+//! # Topics API module
+//!
+//! API endpoints for canonical polling topic management.
+//!
+//! ## Endpoints
+//!
+//! - `GET /v1/topics`: List topics with optional scope.
+//! - `GET /v1/topics/stable/*`: Stable topic endpoints (presidential approval, etc.).
+
 pub mod endpoints;
 mod query;
 

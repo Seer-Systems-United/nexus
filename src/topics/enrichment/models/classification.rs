@@ -1,3 +1,7 @@
+//! # Classification models
+//!
+//! Data types for topic classification input and output.
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

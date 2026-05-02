@@ -1,3 +1,7 @@
+//! # Stopwords list
+//!
+//! Provides stopword filtering using the `stop-words` crate.
+
 use std::collections::HashSet;
 use std::sync::OnceLock;
 use stop_words::LANGUAGE;

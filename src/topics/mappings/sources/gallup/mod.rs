@@ -1,3 +1,8 @@
+//! # Gallup topic matching
+//!
+//! Maps Gallup data structures to canonical topics.
+//! Gives special handling to presidential approval.
+
 use crate::sources::DataStructure;
 use crate::topics::catalog::PRESIDENTIAL_APPROVAL_ID;
 use crate::topics::mappings::{TopicMatch, common, stable_match};

@@ -1,7 +1,12 @@
+//! # CLI parsing utilities
+//!
+//! Helpers for parsing CLI argument values.
+
 use crate::sources::Scope;
 use crate::topics::enrichment::DynError;
 use std::io::{Error as IoError, ErrorKind};
 
+/// Get a required argument value by index.
 pub(super) fn required_arg(args: &[String], index: usize, flag: &str) -> Result<String, DynError> {
     args.get(index).cloned().ok_or_else(|| {
         Box::new(IoError::new(
@@ -11,6 +16,7 @@ pub(super) fn required_arg(args: &[String], index: usize, flag: &str) -> Result<
     })
 }
 
+/// Parse a u32 argument value.
 pub(super) fn parse_u32(value: impl AsRef<str>, flag: &str) -> Result<u32, DynError> {
     let parsed = value.as_ref().parse::<u32>().map_err(|error| {
         IoError::new(
@@ -29,6 +35,7 @@ pub(super) fn parse_u32(value: impl AsRef<str>, flag: &str) -> Result<u32, DynEr
     Ok(parsed)
 }
 
+/// Parse a usize argument value.
 pub(super) fn parse_usize(value: impl AsRef<str>) -> Result<usize, DynError> {
     let parsed = value.as_ref().parse::<usize>().map_err(|error| {
         IoError::new(
@@ -47,6 +54,11 @@ pub(super) fn parse_usize(value: impl AsRef<str>) -> Result<usize, DynError> {
     Ok(parsed)
 }
 
+/// Parse the scope argument for the enrichment CLI.
+///
+/// # Parameters
+/// - `scope`: Optional scope string.
+/// - `count`: Optional count value.
 pub fn parse_scope(scope: Option<&str>, count: Option<u32>) -> Result<Scope, DynError> {
     let normalized = scope
         .unwrap_or("last_entries")

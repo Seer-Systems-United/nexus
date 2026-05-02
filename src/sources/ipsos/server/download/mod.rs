@@ -1,3 +1,8 @@
+//! # Ipsos poll download module
+//!
+//! Downloads Ipsos poll PDFs from the latest polls page.
+//! Handles article parsing, PDF fetching, and outcome tracking.
+
 mod client;
 mod models;
 mod parse;
@@ -12,10 +17,25 @@ use models::DownloadOutcome;
 use std::collections::HashSet;
 use std::error::Error;
 
+/// Base URL for Ipsos latest polls page.
 const IPSOS_LATEST_POLLS_URL: &str = "https://www.ipsos.com/en-us/latest-us-opinion-polls";
 
+/// Boxed dynamic error type for Ipsos operations.
 pub type DynError = Box<dyn Error + Send + Sync>;
 
+/// Download Ipsos poll PDFs for the given scope.
+///
+/// Iterates through article stubs from the landing page,
+/// filtering by cutoff date and entry limit.
+///
+/// # Parameters
+/// - `scope`: The query scope defining date range or entry limit.
+///
+/// # Returns
+/// - `Ok(Vec<IpsosPollPdf>)`: Downloaded poll PDFs.
+///
+/// # Errors
+/// - Returns an error if no PDFs could be downloaded.
 pub(crate) async fn download_ipsos_polls(
     scope: Scope,
 ) -> Result<Vec<super::IpsosPollPdf>, DynError> {
@@ -61,6 +81,14 @@ pub(crate) async fn download_ipsos_polls(
     outcome.finish(scope)
 }
 
+/// Download a single Ipsos poll PDF.
+///
+/// # Parameters
+/// - `client`: HTTP client to use.
+/// - `stub`: Article stub with title and URL.
+///
+/// # Returns
+/// - `Ok(IpsosPollPdf)`: Downloaded poll with metadata.
 async fn download_one(
     client: &reqwest::Client,
     stub: &ArticleStub,

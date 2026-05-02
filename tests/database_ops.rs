@@ -1,3 +1,7 @@
+//! # Database operations tests
+//!
+//! Tests for database password hashing, verification, and user operations.
+
 use nexus::database::ops::password::{hash_password, verify_password};
 use nexus::database::ops::user::{
     generate_account_number, is_valid_account_number, normalize_account_number,

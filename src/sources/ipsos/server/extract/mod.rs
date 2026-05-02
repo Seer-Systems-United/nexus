@@ -1,3 +1,8 @@
+//! # Ipsos extraction module
+//!
+//! Extracts poll data from Ipsos PDFs by parsing text
+//! into bar graphs, crosstabs, and unstructured data.
+
 mod parse;
 mod summary;
 mod text;
@@ -7,10 +12,11 @@ pub use text::{is_question_title, normalize_line};
 
 use crate::sources::{DataCollection, DataStructure, Scope};
 use std::error::Error;
-use summary::collection_subtitle;
 
+/// Boxed dynamic error type for Ipsos operations.
 type DynError = Box<dyn Error + Send + Sync>;
 
+/// Prefix a data structure title with a given string.
 fn prefix_structure(structure: &mut DataStructure, prefix: &str) {
     match structure {
         DataStructure::BarGraph { title, .. }
@@ -28,6 +34,20 @@ fn prefix_structure(structure: &mut DataStructure, prefix: &str) {
     }
 }
 
+/// Extract Ipsos data from a list of poll PDFs.
+///
+/// For each PDF, extracts text and parses questions.
+/// If no structured data is found, falls back to unstructured text.
+///
+/// # Parameters
+/// - `pdfs`: Downloaded Ipsos poll PDFs.
+/// - `scope`: The query scope.
+///
+/// # Returns
+/// - `Ok(DataCollection)`: Combined data from all PDFs.
+///
+/// # Errors
+/// - Returns an error if no valid data is found.
 pub(crate) fn extract_ipsos_data(
     pdfs: &[crate::sources::ipsos::server::IpsosPollPdf],
     scope: Scope,
@@ -84,7 +104,7 @@ pub(crate) fn extract_ipsos_data(
 
     Ok(DataCollection {
         title: "Ipsos Polls".to_string(),
-        subtitle: collection_subtitle(scope, pdfs),
+        subtitle: summary::collection_subtitle(scope, pdfs),
         data,
     })
 }

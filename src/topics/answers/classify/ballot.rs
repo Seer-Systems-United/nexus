@@ -1,5 +1,17 @@
+//! # Ballot and direction answer classifier
+//!
+//! Maps answer labels to canonical "support/oppose" and
+//! "right direction/wrong track" canonical answers.
+
 use crate::topics::answers::{answer, support::models::MappedAnswer};
 
+/// Map a ballot answer label to a canonical answer.
+///
+/// # Parameters
+/// - `lower`: Lowercase answer label.
+///
+/// # Returns
+/// - `Some(MappedAnswer)` if it matches ballot patterns.
 pub fn ballot_answer(lower: &str) -> Option<MappedAnswer> {
     if lower.contains("democratic") || lower == "democrat" {
         return Some(answer("democratic-candidate", "Democratic candidate", 3));
@@ -16,6 +28,13 @@ pub fn ballot_answer(lower: &str) -> Option<MappedAnswer> {
     super::unsure_answer(lower)
 }
 
+/// Map a direction answer label to "right direction" or "wrong track".
+///
+/// # Parameters
+/// - `label`: The normalized answer label.
+///
+/// # Returns
+/// - `Some(MappedAnswer)` if it matches direction patterns.
 pub fn direction_answer(label: &str) -> Option<MappedAnswer> {
     let lower = label.to_ascii_lowercase();
     if lower.contains("right direction") {

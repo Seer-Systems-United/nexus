@@ -1,8 +1,20 @@
+//! # Headline topic utilities
+//!
+//! Generates headline topic summaries and counts unique polls.
+//! Helps identify recurring topics across sources.
+
 use crate::topics::types::{
     HeadlineTopicSummary, TopicObservation, TopicSource, TopicStatus, TopicSummary,
 };
 use std::collections::HashSet;
 
+/// Convert a single observation into a topic summary for headlines.
+///
+/// # Parameters
+/// - `observation`: The observation to convert.
+///
+/// # Returns
+/// - `TopicSummary` with headline status.
 pub fn observation_topic_summary(observation: &TopicObservation) -> TopicSummary {
     TopicSummary {
         id: observation.topic_id.clone(),
@@ -13,6 +25,13 @@ pub fn observation_topic_summary(observation: &TopicObservation) -> TopicSummary
     }
 }
 
+/// Generate a headline topic summary from grouped observations.
+///
+/// # Parameters
+/// - `observations`: Observations for a single headline topic.
+///
+/// # Returns
+/// - `Some(HeadlineTopicSummary)` with aggregated metadata.
 pub fn headline_summary(observations: &[TopicObservation]) -> Option<HeadlineTopicSummary> {
     let first = observations.first()?;
     let mut source_ids = HashSet::new();
@@ -43,6 +62,13 @@ pub fn headline_summary(observations: &[TopicObservation]) -> Option<HeadlineTop
     })
 }
 
+/// Count unique polls (by source:collection:date) in observations.
+///
+/// # Parameters
+/// - `observations`: The observations to count.
+///
+/// # Returns
+/// - Number of unique polls.
 pub fn unique_poll_count(observations: &[TopicObservation]) -> usize {
     observations
         .iter()

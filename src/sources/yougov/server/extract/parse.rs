@@ -1,6 +1,21 @@
+//! # YouGov question parser
+//!
+//! Parses questions from Economist/YouGov PDF text.
+//! Uses templates to identify panels and extract data rows.
+
 use super::templates::*;
 use super::utils::*;
 
+/// Parse all questions from lines of text extracted from a PDF.
+///
+/// Iterates through lines looking for question titles,
+/// then finds panel templates and parses the corresponding data.
+///
+/// # Parameters
+/// - `lines`: All lines from the PDF text extraction.
+///
+/// # Returns
+/// - `Vec<DataStructure>`: Parsed crosstab structures.
 pub(crate) fn parse_questions(lines: &[String]) -> Vec<crate::sources::DataStructure> {
     let mut questions = Vec::new();
     let mut index = 0usize;

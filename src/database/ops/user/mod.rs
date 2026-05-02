@@ -1,3 +1,8 @@
+//! # User database operations module
+//!
+//! Handles user creation, lookup by ID/email/account number,
+//! and account number generation for polling federation users.
+
 mod account;
 
 pub use account::{
@@ -11,6 +16,15 @@ use crate::database::schema::user::users::dsl::{
 use crate::database::schema::user::{NewUser, User};
 use diesel::prelude::*;
 
+/// Create a new user from Google OpenID Connect with email.
+///
+/// # Parameters
+/// - `conn`: Database connection.
+/// - `name`: Display name from Google profile.
+/// - `email`: Email address from Google profile.
+///
+/// # Returns
+/// - `Ok(User)`: The newly created user record.
 pub fn create_oidc_user(conn: &mut DbConnection, name: &str, email: &str) -> QueryResult<User> {
     let new_user = NewUser {
         id: uuid::Uuid::new_v4(),
@@ -25,6 +39,15 @@ pub fn create_oidc_user(conn: &mut DbConnection, name: &str, email: &str) -> Que
         .get_result(conn)
 }
 
+/// Create a new user with an allocated account number (password-based auth).
+///
+/// # Parameters
+/// - `conn`: Database connection.
+/// - `name`: Display name for the user.
+/// - `account_number`: Pre-allocated unique account number.
+///
+/// # Returns
+/// - `Ok(User)`: The newly created user record.
 pub fn create_account_number_user(
     conn: &mut DbConnection,
     name: &str,
@@ -43,14 +66,38 @@ pub fn create_account_number_user(
         .get_result(conn)
 }
 
+/// Look up a user by their UUID.
+///
+/// # Parameters
+/// - `conn`: Database connection.
+/// - `id`: UUID of the user to find.
+///
+/// # Returns
+/// - `Ok(User)`: The user record if found.
 pub fn get_user_by_id(conn: &mut DbConnection, id: &uuid::Uuid) -> QueryResult<User> {
     users.find(*id).first(conn)
 }
 
+/// Look up a user by their email address.
+///
+/// # Parameters
+/// - `conn`: Database connection.
+/// - `email`: Email address to search for.
+///
+/// # Returns
+/// - `Ok(User)`: The user record if found.
 pub fn get_user_by_email(conn: &mut DbConnection, email: &str) -> QueryResult<User> {
     users.filter(user_email.eq(email)).first(conn)
 }
 
+/// Look up a user by their account number.
+///
+/// # Parameters
+/// - `conn`: Database connection.
+/// - `account_number`: Account number to search for.
+///
+/// # Returns
+/// - `Ok(User)`: The user record if found.
 pub fn get_user_by_account_number(
     conn: &mut DbConnection,
     account_number: &str,
@@ -60,6 +107,15 @@ pub fn get_user_by_account_number(
         .first(conn)
 }
 
+/// Get an existing user by email, or create a new OIDC user if not found.
+///
+/// # Parameters
+/// - `conn`: Database connection.
+/// - `name`: Display name for new user creation.
+/// - `email`: Email address to search or create with.
+///
+/// # Returns
+/// - `Ok(User)`: Existing or newly created user record.
 pub fn get_or_create_user_by_email(
     conn: &mut DbConnection,
     name: &str,

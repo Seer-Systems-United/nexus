@@ -1,3 +1,7 @@
+//! # Demographic label normalizer
+//!
+//! Normalizes demographic labels from polling data into canonical forms.
+
 use super::groups::group_value;
 use crate::sources::DataGroup;
 use crate::topics::types::DemographicValue;
@@ -6,6 +10,7 @@ pub(super) fn normalize_text(text: &str) -> String {
     text.split_whitespace().collect::<Vec<_>>().join(" ")
 }
 
+/// Convert a label to a slug (lowercase, dashes).
 pub(super) fn slug(input: &str) -> String {
     let mut output = String::new();
     let mut last_dash = false;
@@ -23,6 +28,11 @@ pub(super) fn slug(input: &str) -> String {
     output.trim_matches('-').to_string()
 }
 
+/// Map a demographic label to a canonical `DemographicValue`.
+///
+/// # Parameters
+/// - `label`: The raw label.
+/// - `group`: Optional group context.
 pub(super) fn demographic_for_label(label: &str, group: Option<&DataGroup>) -> DemographicValue {
     let normalized = normalize_text(label);
     let lower = normalized.to_ascii_lowercase();

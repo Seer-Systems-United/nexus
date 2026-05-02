@@ -1,3 +1,7 @@
+//! # Battery item extraction
+//!
+//! Extracts question items from battery-style questions.
+
 pub fn battery_item_text(text: &str) -> Option<String> {
     if let Some((_, tail)) = text.rsplit_once('?') {
         let item = trim_battery_tail(tail);

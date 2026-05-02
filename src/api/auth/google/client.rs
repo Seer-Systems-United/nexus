@@ -1,3 +1,8 @@
+//! # Google OpenID Connect client utilities
+//!
+//! Provides HTTP client setup, provider metadata discovery, and Google OAuth
+//! client construction for OpenID Connect flows.
+
 use openidconnect::core::{CoreClient, CoreProviderMetadata};
 use openidconnect::reqwest;
 use openidconnect::{ClientId, ClientSecret, IssuerUrl, RedirectUrl};
@@ -15,6 +20,7 @@ pub(super) type GoogleClient = CoreClient<
 >;
 
 pub(super) fn http_client() -> Result<reqwest::Client, ApiError> {
+    // Disable redirects to avoid following Google's authorization URL automatically
     reqwest::ClientBuilder::new()
         .redirect(reqwest::redirect::Policy::none())
         .build()

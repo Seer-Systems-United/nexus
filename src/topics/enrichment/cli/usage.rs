@@ -1,3 +1,7 @@
+//! # CLI usage text
+//!
+//! Returns the usage string for the enrichment CLI.
+
 pub(super) fn usage() -> String {
     [
         "usage: cargo run -- enrich-topics [--scope latest|last_entries|last_days|last_weeks|last_months|last_years] [--count N]",

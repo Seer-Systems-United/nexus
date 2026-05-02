@@ -1,3 +1,8 @@
+//! # YouGov download module
+//!
+//! Downloads YouGov poll PDFs from The Economist website.
+//! Fetches PDF URLs from article pages and downloads the PDFs.
+
 mod client;
 mod links;
 
@@ -7,6 +12,19 @@ use std::error::Error;
 
 type DynError = Box<dyn Error + Send + Sync>;
 
+/// Download YouGov poll PDFs for the given scope.
+///
+/// Fetches article URLs from The Economist landing page,
+/// then downloads the corresponding crosstabs PDFs.
+///
+/// # Parameters
+/// - `scope`: The query scope (determines how many PDFs to download).
+///
+/// # Returns
+/// - `Ok(Vec<Vec<u8>>)`: Downloaded PDF bytes.
+///
+/// # Errors
+/// - Returns an error if no PDF URLs are found.
 pub(crate) async fn download_yougov_data(
     scope: crate::sources::Scope,
 ) -> Result<Vec<Vec<u8>>, DynError> {

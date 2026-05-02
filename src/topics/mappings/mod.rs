@@ -1,3 +1,7 @@
+//! # Topic mappings module
+//!
+//! Maps source-specific topics to canonical Nexus topics.
+
 use crate::sources::DataStructure;
 use crate::topics::types::{Compatibility, SourceId, TopicSummary};
 

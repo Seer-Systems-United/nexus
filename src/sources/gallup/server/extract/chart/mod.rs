@@ -1,3 +1,8 @@
+//! # Gallup chart parsing module
+//!
+//! Determines chart type (line graph vs crosstab) and delegates
+//! to the appropriate parser.
+
 mod table;
 mod text;
 mod trend;
@@ -5,6 +10,18 @@ mod trend;
 use crate::sources::DataStructure;
 use text::normalize_line;
 
+/// Parse a Gallup chart CSV into a data structure.
+///
+/// First tries to parse as a line graph (temporal data),
+/// then falls back to crosstab (tabular data).
+///
+/// # Parameters
+/// - `title`: The chart title.
+/// - `csv_bytes`: Raw CSV bytes from datawrapper.
+///
+/// # Returns
+/// - `Some(DataStructure)` if parsing succeeds.
+/// - `None` if the CSV is invalid or empty.
 pub fn parse_chart_csv(title: &str, csv_bytes: &[u8]) -> Option<DataStructure> {
     let mut reader = csv::ReaderBuilder::new()
         .flexible(true)

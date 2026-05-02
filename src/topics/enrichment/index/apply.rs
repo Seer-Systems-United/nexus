@@ -1,3 +1,8 @@
+//! # Enrichment index application
+//!
+//! Applies cached enrichment records to topic observations.
+//! Maps question fingerprints to canonical topics when confidence is high.
+
 use super::input::observation_fingerprint;
 use super::storage::load_index;
 use crate::topics::catalog;

@@ -1,3 +1,8 @@
+//! # Command-based topic classifier
+//!
+//! Runs an external command that reads JSON from stdin
+//! and outputs classification JSON to stdout.
+
 use super::{TopicClassifier, parse_classifier_output};
 use crate::topics::enrichment::{
     ClassificationInput, ClassificationOutput, DynError, SYSTEM_PROMPT,
@@ -7,6 +12,7 @@ use std::io::{Error as IoError, ErrorKind, Write};
 use std::process::{Command, Stdio};
 
 #[derive(Debug, Clone)]
+/// A classifier that invokes an external command for topic classification.
 pub(super) struct CommandClassifier {
     command: Vec<String>,
     model: String,
@@ -19,6 +25,7 @@ struct CommandPayload<'a> {
 }
 
 impl CommandClassifier {
+    /// Create a new command classifier from a command string.
     pub(super) fn new(command: String) -> Result<Self, DynError> {
         let command = command
             .split_whitespace()
@@ -43,6 +50,7 @@ impl CommandClassifier {
 
 #[async_trait::async_trait]
 impl TopicClassifier for CommandClassifier {
+    /// Classify a question using the external command.
     async fn classify(
         &self,
         input: &ClassificationInput,
@@ -73,6 +81,7 @@ impl TopicClassifier for CommandClassifier {
         parse_classifier_output(&String::from_utf8(output.stdout)?)
     }
 
+    /// Get the model name for this classifier.
     fn model_name(&self) -> &str {
         &self.model
     }

@@ -1,3 +1,7 @@
+//! # YouGov extraction tests
+//!
+//! Tests for YouGov document header extraction logic.
+
 use nexus::sources::yougov::server::extract::extract_document_header;
 
 #[test]

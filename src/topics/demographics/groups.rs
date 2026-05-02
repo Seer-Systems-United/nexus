@@ -1,3 +1,7 @@
+//! # Demographic group utilities
+//!
+//! Utilities for grouping and mapping demographic data from polling panels.
+
 use super::labels::{normalize_text, slug};
 use crate::sources::{DataGroup, DataPanel};
 use crate::topics::types::DemographicGroup;
@@ -9,6 +13,7 @@ pub(super) fn group_for_column<'a>(panel: &'a DataPanel, column: &str) -> Option
         .find(|group| group.labels.iter().any(|label| label == column))
 }
 
+/// Extract demographic group value from a DataGroup.
 pub(super) fn group_value(group: Option<&DataGroup>) -> Option<DemographicGroup> {
     let group = group?;
     let label = normalize_text(&group.title);

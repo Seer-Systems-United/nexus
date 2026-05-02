@@ -1,3 +1,7 @@
+//! # Emerson extraction tests
+//!
+//! Tests for Emerson crosstab and topline sheet extraction logic.
+
 use nexus::sources::DataStructure;
 use nexus::sources::emerson::server::extract::parse_crosstab_sheet;
 

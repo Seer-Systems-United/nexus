@@ -1,5 +1,11 @@
+//! # Text cleaning utilities
+//!
+//! Normalizes question text for different sources.
+//! Strips metadata prefixes and question codes.
+
 use crate::topics::types::SourceId;
 
+/// Normalize text for use as a question key.
 pub fn normalized_question_key(text: &str) -> String {
     super::normalized_search_text(&clean_question_text_generic(text))
 }

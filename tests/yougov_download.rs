@@ -1,3 +1,7 @@
+//! # YouGov download tests
+//!
+//! Tests for YouGov PDF URL cleaning and link matching logic.
+
 use nexus::sources::yougov::server::download::{clean_pdf_url, is_economist_crosstabs_pdf_url};
 
 #[test]

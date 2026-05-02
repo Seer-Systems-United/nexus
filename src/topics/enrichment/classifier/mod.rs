@@ -1,3 +1,8 @@
+//! # Topic classifier module
+//!
+//! Provides trait and factory for topic classification.
+//! Supports OpenAI-compatible endpoints and command-based classifiers.
+
 mod chat;
 mod command;
 mod parse;
@@ -11,12 +16,16 @@ use chat::OpenAiChatClassifier;
 use command::CommandClassifier;
 
 #[async_trait::async_trait]
+/// Trait for topic classification implementations.
 pub(super) trait TopicClassifier {
     async fn classify(&self, input: &ClassificationInput)
     -> Result<ClassificationOutput, DynError>;
     fn model_name(&self) -> &str;
 }
 
+/// Create a classifier from environment variables.
+///
+/// Uses `NEXUS_TOPIC_LLM_COMMAND` if set, otherwise OpenAI-compatible endpoint.
 pub(super) fn classifier_from_env() -> Result<Box<dyn TopicClassifier + Send + Sync>, DynError> {
     if let Ok(command) = std::env::var("NEXUS_TOPIC_LLM_COMMAND")
         && !command.trim().is_empty()

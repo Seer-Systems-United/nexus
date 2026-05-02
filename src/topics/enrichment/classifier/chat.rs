@@ -1,3 +1,7 @@
+//! # Chat-based topic classifier
+//!
+//! Uses LLM chat API to classify polling questions into topics.
+
 use super::{TopicClassifier, parse_classifier_output};
 use crate::topics::enrichment::{
     ClassificationInput, ClassificationOutput, DynError, SYSTEM_PROMPT,

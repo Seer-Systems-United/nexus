@@ -1,9 +1,30 @@
+//! # Calendar utilities
+//!
+//! Provides low-level calendar functions for date calculations,
+//! including leap year detection and day-of-month calculations
+//! using the proleptic Gregorian calendar.
+
 use super::SimpleDate;
 
+/// Check if a given year is a leap year.
+///
+/// # Parameters
+/// - `year`: The year to check.
+///
+/// # Returns
+/// - `true` if the year is a leap year, `false` otherwise.
 fn is_leap_year(year: i32) -> bool {
     (year % 4 == 0 && year % 100 != 0) || year % 400 == 0
 }
 
+/// Get the number of days in a given month and year.
+///
+/// # Parameters
+/// - `year`: The year.
+/// - `month`: The month (1-12).
+///
+/// # Returns
+/// - Number of days in the month (28-31).
 pub(super) fn days_in_month(year: i32, month: u8) -> u8 {
     match month {
         1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
@@ -14,6 +35,16 @@ pub(super) fn days_in_month(year: i32, month: u8) -> u8 {
     }
 }
 
+/// Convert a number of days since UNIX epoch into a `SimpleDate`.
+///
+/// Uses the algorithm from:
+/// https://howardhinnant.github.io/date_algorithms.html#civil_from_days
+///
+/// # Parameters
+/// - `days`: Number of days since UNIX epoch (1970-01-01).
+///
+/// # Returns
+/// - `SimpleDate`: The corresponding calendar date.
 pub(super) fn civil_from_days(days: i64) -> SimpleDate {
     let z = days + 719_468;
     let era = if z >= 0 { z } else { z - 146_096 } / 146_097;

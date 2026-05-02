@@ -1,3 +1,8 @@
+//! # Emerson crosstab sheet parser
+//!
+//! Extracts crosstab (cross-tabulation) data from Emerson workbooks.
+//! Identifies question blocks and parses rows with percentage values.
+
 mod layout;
 mod row;
 
@@ -5,6 +10,16 @@ use super::utils::{cell_text, clean_question_title};
 use layout::parse_crosstab_layout;
 use row::parse_crosstab_row;
 
+/// Parse a crosstab sheet into crosstab data structures.
+///
+/// First identifies the layout (columns, groups, row indices),
+/// then iterates through question blocks to extract data rows.
+///
+/// # Parameters
+/// - `rows`: All rows from the crosstab sheet.
+///
+/// # Returns
+/// - `Vec<DataStructure>`: Crosstab structures for each question block.
 pub fn parse_crosstab_sheet(rows: &[Vec<calamine::Data>]) -> Vec<crate::sources::DataStructure> {
     let Some(layout) = parse_crosstab_layout(rows) else {
         return Vec::new();
@@ -13,6 +28,7 @@ pub fn parse_crosstab_sheet(rows: &[Vec<calamine::Data>]) -> Vec<crate::sources:
     let max_cols = rows.iter().map(Vec::len).max().unwrap_or(0);
     let mut block_starts = Vec::new();
 
+    // Find question block starts (non-empty cells in row 0)
     for col in 2..max_cols {
         let title = cell_text(rows, 0, col);
         if !title.is_empty() {
@@ -31,6 +47,7 @@ pub fn parse_crosstab_sheet(rows: &[Vec<calamine::Data>]) -> Vec<crate::sources:
         let mut data_rows = Vec::new();
         let mut option_col = *start_col;
 
+        // Iterate through option/percent column pairs
         while option_col <= end_col {
             let answer_label = cell_text(rows, 1, option_col);
             if answer_label.is_empty() {

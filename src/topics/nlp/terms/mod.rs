@@ -1,3 +1,8 @@
+//! # Term extraction module
+//!
+//! Extracts normalized terms from question text.
+//! Handles stemming, aliases, and phrase matching.
+
 mod aliases;
 mod phrases;
 mod stopwords;

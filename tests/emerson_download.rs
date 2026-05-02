@@ -1,3 +1,7 @@
+//! # Emerson download tests
+//!
+//! Tests for Emerson release parsing and download URL logic.
+
 use nexus::sources::date::SimpleDate;
 use nexus::sources::emerson::server::download::{
     emerson_blog_page_url, parse_release_details, parse_release_stubs,

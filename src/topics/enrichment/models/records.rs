@@ -1,3 +1,8 @@
+//! # Enrichment record models
+//!
+//! Data structures for the question enrichment index.
+//! Stores classified questions with metadata and review status.
+
 use super::{ClassificationInput, ClassificationOutput};
 use crate::topics::enrichment::{INDEX_VERSION, MIN_APPLY_CONFIDENCE};
 use serde::{Deserialize, Serialize};

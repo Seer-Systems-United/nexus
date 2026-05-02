@@ -1,3 +1,8 @@
+//! # Gallup extraction module
+//!
+//! Extracts poll data from Gallup articles and charts.
+//! Parses CSV data into bar graphs, line graphs, and crosstabs.
+
 mod chart;
 mod summary;
 
@@ -8,10 +13,25 @@ use std::error::Error;
 
 type DynError = Box<dyn Error + Send + Sync>;
 
+/// Create a parse error with a static message.
 fn parse_error(message: &'static str) -> DynError {
     std::io::Error::new(std::io::ErrorKind::InvalidData, message).into()
 }
 
+/// Extract Gallup data from downloaded articles.
+///
+/// Parses chart CSVs into data structures, with fallback to unstructured text
+/// if no charts are found.
+///
+/// # Parameters
+/// - `articles`: Downloaded Gallup articles with charts.
+/// - `scope`: The query scope.
+///
+/// # Returns
+/// - `Ok(DataCollection)`: Combined data from all articles.
+///
+/// # Errors
+/// - Returns an error if no valid data is found.
 pub(crate) fn extract_gallup_data(
     articles: &[crate::sources::gallup::server::GallupArticleAsset],
     scope: Scope,

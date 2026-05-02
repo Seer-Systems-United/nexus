@@ -1,11 +1,27 @@
+//! # Source scope parsing utilities
+//!
+//! Parses and normalizes scope query parameters for polling source endpoints,
+//! converting string scopes into typed `Scope` values.
+
 use super::SourceQuery;
 use crate::api::error::ApiError;
 use crate::sources::Scope;
 
+/// Parse a `SourceQuery` into a typed `Scope` value.
+///
+/// # Parameters
+/// - `query`: The source query containing optional scope and count parameters.
+///
+/// # Returns
+/// - `Ok(Scope)`: The parsed scope (defaults to `Scope::Latest` if not specified).
+///
+/// # Errors
+/// - `400 Bad Request`: Unsupported scope string or missing count for counted scopes.
 pub fn parse_scope(query: SourceQuery) -> Result<Scope, ApiError> {
     let Some(scope) = query.scope.as_deref() else {
         return Ok(Scope::Latest);
     };
+    // Normalize scope: lowercase and replace hyphens with underscores
     let normalized = scope.trim().to_ascii_lowercase().replace('-', "_");
 
     match normalized.as_str() {
@@ -23,6 +39,16 @@ pub fn parse_scope(query: SourceQuery) -> Result<Scope, ApiError> {
     }
 }
 
+/// Extract and validate the count parameter from a query.
+///
+/// # Parameters
+/// - `query`: The query containing optional `count` or `n` parameters.
+///
+/// # Returns
+/// - `Ok(u32)`: The validated count value (must be non-zero).
+///
+/// # Errors
+/// - `400 Bad Request`: Count is missing or zero.
 fn required_count(query: &SourceQuery) -> Result<u32, ApiError> {
     let count = query
         .count

@@ -1,3 +1,7 @@
+//! # Database helper
+//!
+//! Provides a `run` helper to execute database operations with error handling.
+
 use crate::AppState;
 use crate::api::error::ApiError;
 use crate::database::DbConnection;

@@ -1,3 +1,19 @@
+//! # Month name parsing utilities
+//!
+//! Provides a function to parse month names (full or abbreviated)
+//! into their numeric representation (1-12).
+
+/// Parse a month name into its numeric value (1-12).
+///
+/// Accepts full month names (case-insensitive) or 3-letter abbreviations.
+/// Extra whitespace and non-alphanumeric characters are trimmed.
+///
+/// # Parameters
+/// - `input`: The month name or abbreviation to parse.
+///
+/// # Returns
+/// - `Some(u8)`: The month number (1-12) if recognized.
+/// - `None`: If the input doesn't match any known month.
 pub fn parse_month_name(input: &str) -> Option<u8> {
     let normalized = input
         .trim_matches(|ch: char| !ch.is_ascii_alphanumeric() && ch != '+')

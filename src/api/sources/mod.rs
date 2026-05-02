@@ -1,3 +1,12 @@
+//! # Sources API module
+//!
+//! API endpoints for polling source ingestion and data retrieval.
+//!
+//! ## Endpoints
+//!
+//! - `GET /v1/sources/`: List available sources.
+//! - `GET /v1/sources/{source}`: Get source data with scope.
+
 mod data;
 mod models;
 mod scope;

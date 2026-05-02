@@ -1,8 +1,25 @@
+//! # Ipsos question parser
+//!
+//! Identifies question titles and parses question blocks
+//! from Ipsos PDF text.
+
 use super::columns::{find_header_start, parse_columns};
 use super::rows::parse_rows;
-use crate::sources::ipsos::server::extract::text::{is_noise_line, is_question_title};
+use crate::sources::ipsos::server::extract::text::{
+    is_noise_line, is_question_title,
+};
 use crate::sources::{DataGroup, DataPanel, DataStructure};
 
+/// Parse all questions from lines of text extracted from an Ipsos PDF.
+///
+/// Iterates through lines, identifying question titles and
+/// parsing the corresponding crosstab data.
+///
+/// # Parameters
+/// - `lines`: All lines from the PDF text extraction.
+///
+/// # Returns
+/// - `Vec<DataStructure>`: Parsed crosstab structures.
 pub fn parse_questions(lines: &[String]) -> Vec<DataStructure> {
     let mut structures = Vec::new();
     let mut index = 0usize;
@@ -37,6 +54,7 @@ pub fn parse_questions(lines: &[String]) -> Vec<DataStructure> {
     structures
 }
 
+/// Extract the question title from surrounding lines.
 fn question_title(lines: &[String], index: usize, header_start: usize) -> String {
     let title_line = &lines[index];
     let prompt = lines[index + 1..header_start]
@@ -53,6 +71,7 @@ fn question_title(lines: &[String], index: usize, header_start: usize) -> String
     }
 }
 
+/// Build a `DataStructure::Crosstab` from title, columns, and rows.
 fn crosstab(
     title: String,
     columns: Vec<String>,

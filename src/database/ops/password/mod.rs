@@ -1,3 +1,8 @@
+//! # Password operations module
+//!
+//! Handles password hashing, verification, storage, and retrieval
+//! using PBKDF2-SHA256 with configurable iterations.
+
 mod format;
 mod hash;
 
@@ -10,6 +15,14 @@ use crate::database::schema::login::login::dsl::{
 use crate::database::schema::login::{Login, NewLogin};
 use diesel::prelude::*;
 
+/// Errors that can occur during password operations.
+///
+/// # Variants
+/// - `Crypto`: Cryptographic operation failed (e.g., random salt generation).
+/// - `InvalidFormat`: Password hash string has invalid format.
+/// - `InvalidBase64`: Base64 decoding of hash components failed.
+/// - `InvalidIterations`: Iteration count in stored hash is invalid.
+/// - `Database`: Diesel database error.
 #[derive(Debug)]
 pub enum PasswordError {
     Crypto,
@@ -25,6 +38,19 @@ impl From<diesel::result::Error> for PasswordError {
     }
 }
 
+/// Create a new login record with a hashed password for a user.
+///
+/// # Parameters
+/// - `conn`: Database connection.
+/// - `user_id`: UUID of the user to create login for.
+/// - `password`: Plaintext password to hash and store.
+///
+/// # Returns
+/// - `Ok(Login)`: The newly created login record.
+///
+/// # Errors
+/// - `PasswordError::Crypto`: Password hashing failed.
+/// - `PasswordError::Database`: Database insert failed.
 pub fn create_login(
     conn: &mut DbConnection,
     user_id: uuid::Uuid,
@@ -44,6 +70,14 @@ pub fn create_login(
         .map_err(PasswordError::from)
 }
 
+/// Get the most recent login record for a user.
+///
+/// # Parameters
+/// - `conn`: Database connection.
+/// - `user_id`: UUID of the user.
+///
+/// # Returns
+/// - `Ok(Login)`: The most recently created login record.
 pub fn get_latest_login_for_user(
     conn: &mut DbConnection,
     user_id: uuid::Uuid,
@@ -54,6 +88,20 @@ pub fn get_latest_login_for_user(
         .first(conn)
 }
 
+/// Verify a user's password against their latest login record.
+///
+/// # Parameters
+/// - `conn`: Database connection.
+/// - `user_id`: UUID of the user.
+/// - `password`: Plaintext password to verify.
+///
+/// # Returns
+/// - `Ok(true)`: Password matches.
+/// - `Ok(false)`: Password does not match.
+///
+/// # Errors
+/// - `PasswordError::Database`: Failed to fetch login record.
+/// - `PasswordError::InvalidFormat`: Stored hash has invalid format.
 pub fn verify_login_password(
     conn: &mut DbConnection,
     user_id: uuid::Uuid,

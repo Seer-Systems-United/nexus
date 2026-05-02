@@ -1,3 +1,7 @@
+//! # CLI argument definitions
+//!
+//! Parses command-line arguments for the enrichment tool.
+
 use super::parse::{parse_scope, parse_u32, parse_usize, required_arg};
 use super::usage::usage;
 use crate::sources::Scope;
@@ -6,6 +10,14 @@ use crate::topics::enrichment::index::index_path_from_env;
 use std::io::{Error as IoError, ErrorKind};
 use std::path::PathBuf;
 
+/// Arguments for the `enrich-topics` CLI.
+///
+/// # Fields
+/// - `scope`: The scope for data collection.
+/// - `index_path`: Path to the question index file.
+/// - `refresh`: Whether to refresh all classifications.
+/// - `dry_run`: If true, don't write the index.
+/// - `limit`: Optional limit on questions to classify.
 #[derive(Debug)]
 pub(super) struct EnrichmentArgs {
     pub(super) scope: Scope,
@@ -15,8 +27,9 @@ pub(super) struct EnrichmentArgs {
     pub(super) limit: Option<usize>,
 }
 
-impl EnrichmentArgs {
-    pub(super) fn parse(args: Vec<String>) -> Result<Self, DynError> {
+    impl EnrichmentArgs {
+        /// Parse CLI arguments into `EnrichmentArgs`.
+        pub(super) fn parse(args: Vec<String>) -> Result<Self, DynError> {
         let mut scope = None;
         let mut count = None;
         let mut index_path = index_path_from_env();

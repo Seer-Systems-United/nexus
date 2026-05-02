@@ -1,3 +1,7 @@
+//! # Observation types
+//!
+//! Data types for polling observations and sources.
+
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 

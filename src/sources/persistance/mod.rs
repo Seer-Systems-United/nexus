@@ -1,3 +1,8 @@
+//! # Source data persistence module
+//!
+//! Provides caching and refresh logic for polling source data.
+//! Uses `StorageWrapper` to orchestrate cache lookups and fresh data fetches.
+
 mod cache;
 mod refresh;
 
@@ -10,17 +15,30 @@ use tracing::debug;
 
 type DynError = Box<dyn std::error::Error + Send + Sync>;
 
+/// Wrapper that adds caching to a `Source` implementation.
+///
+/// # Type Parameters
+/// - `S`: The source type implementing `Source`.
 pub struct StorageWrapper<S: Source> {
     _phantom: PhantomData<S>,
 }
 
 impl<S: Source> StorageWrapper<S> {
+    /// Create a new `StorageWrapper` for the given source type.
     pub fn new() -> Self {
         Self {
             _phantom: PhantomData,
         }
     }
 
+    /// Get data from cache or fetch fresh data if cache is stale/missing.
+    ///
+    /// # Parameters
+    /// - `scope`: The scope for data loading.
+    /// - `fetch`: Async function to fetch fresh data.
+    ///
+    /// # Returns
+    /// - `Ok(DataCollection)`: Cached or fresh data.
     pub async fn get_data<F, Fut>(&self, scope: Scope, fetch: F) -> Result<DataCollection, DynError>
     where
         F: FnOnce() -> Fut,
@@ -29,6 +47,14 @@ impl<S: Source> StorageWrapper<S> {
         self.get_data_with_cache(scope, |_| fetch()).await
     }
 
+    /// Get data from cache (with stale cache passed to fetch), or fetch fresh.
+    ///
+    /// # Parameters
+    /// - `scope`: The scope for data loading.
+    /// - `fetch`: Async function that receives optional stale cache.
+    ///
+    /// # Returns
+    /// - `Ok(DataCollection)`: Cached or fresh data.
     pub async fn get_data_with_cache<F, Fut>(
         &self,
         scope: Scope,
@@ -62,6 +88,7 @@ impl<S: Source> StorageWrapper<S> {
         }
     }
 
+    /// Store fresh data in the cache and return it.
     fn store_fresh_data(
         &self,
         cache: &SourceCache<S>,

@@ -1,8 +1,20 @@
+//! # Approval answer classifier
+//!
+//! Maps answer labels to "Approve"/"Disapprove" or
+//! "Favorable"/"Unfavorable" canonical answers.
+
 use crate::topics::answers::{
     answer,
     support::{models::MappedAnswer, text},
 };
 
+/// Map an answer label to an approval answer.
+///
+/// # Parameters
+/// - `label`: The normalized answer label.
+///
+/// # Returns
+/// - `Some(MappedAnswer)` if it matches approval patterns.
 pub fn approval_answer(label: &str) -> Option<MappedAnswer> {
     let lower = label.to_ascii_lowercase();
     if lower.contains("disapprove") {
@@ -22,6 +34,13 @@ pub fn approval_answer(label: &str) -> Option<MappedAnswer> {
     super::unsure_answer(label)
 }
 
+/// Map an answer label to a favorability answer.
+///
+/// # Parameters
+/// - `label`: The normalized answer label.
+///
+/// # Returns
+/// - `Some(MappedAnswer)` if it matches favorability patterns.
 pub fn favorability_answer(label: &str) -> Option<MappedAnswer> {
     let lower = label.to_ascii_lowercase();
     if lower.contains("unfavorable") {
@@ -44,6 +63,14 @@ pub fn favorability_answer(label: &str) -> Option<MappedAnswer> {
     super::unsure_answer(label)
 }
 
+/// Determine priority based on whether answer is "net" or exact match.
+///
+/// # Parameters
+/// - `lower`: Lowercase answer label.
+/// - `root`: The root word (e.g., "approve").
+///
+/// # Returns
+/// - `3` for net/exact matches, `1` otherwise.
 fn net_priority(lower: &str, root: &str) -> u8 {
     if text::is_net_or_exact(lower, root) {
         3

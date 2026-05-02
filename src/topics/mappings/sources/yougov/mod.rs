@@ -1,3 +1,8 @@
+//! # YouGov topic matching
+//!
+//! Maps YouGov data structures to canonical topics.
+//! Uses common matching with YouGov-specific overrides.
+
 use crate::sources::DataStructure;
 use crate::topics::catalog::{PRESIDENTIAL_APPROVAL_ID, RIGHT_DIRECTION_ID};
 use crate::topics::mappings::{TopicMatch, common, stable_match};

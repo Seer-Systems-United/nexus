@@ -1,3 +1,7 @@
+//! # Topics answers tests
+//!
+//! Tests for answer normalization and classification logic.
+
 use nexus::topics::answers::normalize_answers;
 
 const PRESIDENTIAL_APPROVAL_ID: &str = "presidential-approval";

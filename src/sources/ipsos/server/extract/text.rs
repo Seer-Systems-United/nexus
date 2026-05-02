@@ -1,3 +1,8 @@
+//! # Ipsos text parsing utilities
+//!
+//! Common noise patterns, text normalization,
+//! value parsing, and question title detection for Ipsos PDFs.
+
 const COMMON_NOISE_LINES: &[&str] = &[
     "TOPLINE & METHODOLOGY",
     "2020 K Street, NW, Suite 410",
@@ -8,6 +13,7 @@ const COMMON_NOISE_LINES: &[&str] = &[
     "Annotated Questionnaire",
 ];
 
+/// Normalize a line by removing known noise patterns and collapsing whitespace.
 pub fn normalize_line(line: &str) -> String {
     let cleaned = line
         .replace("TOPLINE & METHODOLOGY", "")
@@ -16,6 +22,7 @@ pub fn normalize_line(line: &str) -> String {
     cleaned.split_whitespace().collect::<Vec<_>>().join(" ")
 }
 
+/// Check if a line is noise (empty, all digits, or known patterns).
 pub(super) fn is_noise_line(line: &str) -> bool {
     line.is_empty()
         || line.chars().all(|ch| ch.is_ascii_digit())
@@ -24,6 +31,14 @@ pub(super) fn is_noise_line(line: &str) -> bool {
             .any(|noise| line.eq_ignore_ascii_case(noise))
 }
 
+/// Parse a token into an f32 value, handling special cases.
+///
+/// # Parameters
+/// - `token`: The string token to parse.
+///
+/// # Returns
+/// - `Some(f32)` if parsing succeeds.
+/// - `None` for "*", "-", "N/A", or invalid values.
 pub(super) fn parse_value_token(token: &str) -> Option<f32> {
     let normalized = token
         .trim()
@@ -38,10 +53,12 @@ pub(super) fn parse_value_token(token: &str) -> Option<f32> {
     normalized.replace(',', "").parse().ok()
 }
 
+/// Find the index of "(N=" in a line (sample size marker).
 pub(super) fn sample_size_index(line: &str) -> Option<usize> {
     line.find("(N=").or_else(|| line.find("N="))
 }
 
+/// Find the end of a sample size annotation in a line.
 pub(super) fn sample_size_end(line: &str, sample_index: usize) -> usize {
     line[sample_index..]
         .find(')')
@@ -49,10 +66,12 @@ pub(super) fn sample_size_end(line: &str, sample_index: usize) -> usize {
         .unwrap_or(line.len())
 }
 
+/// Check if a line contains a sample size marker.
 pub(super) fn is_sample_size_line(line: &str) -> bool {
     sample_size_index(line).is_some()
 }
 
+/// Check if the next label after headers has a sample size marker.
 pub(super) fn next_label_has_sample_size(lines: &[String], start: usize) -> bool {
     for line in lines.iter().skip(start).take(8) {
         if is_noise_line(line) {
@@ -70,6 +89,7 @@ pub(super) fn next_label_has_sample_size(lines: &[String], start: usize) -> bool
     false
 }
 
+/// Check if a line looks like a question title (starts with "N. " or similar).
 pub fn is_question_title(line: &str) -> bool {
     let Some((prefix, rest)) = line.split_once(". ") else {
         return false;

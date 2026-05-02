@@ -1,3 +1,8 @@
+//! # Topic clustering module
+//!
+//! Clusters headline observations by topic similarity.
+//! Uses term overlap and fuzzy matching.
+
 mod similarity;
 
 use super::models::{Candidate, Cluster};

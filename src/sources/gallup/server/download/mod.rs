@@ -1,3 +1,8 @@
+//! # Gallup download module
+//!
+//! Downloads Gallup articles and chart data from search pages.
+//! Handles pagination, article parsing, and chart CSV extraction.
+
 mod article;
 mod network;
 mod parse;
@@ -10,8 +15,22 @@ pub use utils::{datawrapper_dataset_url, gallup_search_page_url};
 use crate::sources::{Scope, date::SimpleDate};
 use std::error::Error;
 
+/// Boxed dynamic error type for Gallup operations.
 pub type DynError = Box<dyn Error + Send + Sync>;
 
+/// Download Gallup articles for the given scope.
+///
+/// Iterates through search pages, filtering by cutoff date,
+/// until the entry limit is reached or pages go stale.
+///
+/// # Parameters
+/// - `scope`: The query scope defining date range or entry limit.
+///
+/// # Returns
+/// - `Ok(Vec<GallupArticleAsset>)`: Downloaded articles with charts.
+///
+/// # Errors
+/// - Returns an error if download fails.
 pub(crate) async fn download_gallup_articles(
     scope: Scope,
 ) -> Result<Vec<crate::sources::gallup::server::GallupArticleAsset>, DynError> {
@@ -41,6 +60,24 @@ pub(crate) async fn download_gallup_articles(
     Ok(state.finish())
 }
 
+/// Process a single search page for articles.
+///
+/// Fetches the search page HTML, parses article stubs, filters by cutoff date,
+/// downloads new articles, and updates the download state.
+///
+/// # Parameters
+/// - `client`: HTTP client for fetching pages.
+/// - `page_number`: Current search page number (1-indexed).
+/// - `cutoff`: Optional cutoff date; articles before this date are skipped.
+/// - `entry_limit`: Optional limit on total articles to download.
+/// - `state`: Mutable reference to download state for tracking progress.
+///
+/// # Returns
+/// - `Ok(true)` if the page had at least one scoped (non-filtered) article.
+/// - `Ok(false)` if the page had no scoped articles.
+///
+/// # Errors
+/// - Returns an error if page fetch or parsing fails.
 async fn process_page(
     client: &reqwest::Client,
     page_number: usize,

@@ -1,8 +1,17 @@
+//! # YouGov panel template definitions
+//!
+//! Defines column headers and group labels for
+//! Economist/YouGov crosstab panels.
+
 use super::PanelTemplate;
 
+/// Primary panel header: "Sex Race Age Education".
 pub(super) const PRIMARY_PANEL_HEADER: &str = "Sex Race Age Education";
+
+/// Secondary panel header: "2024 Vote Reg Ideology MAGA Party ID".
 const SECONDARY_PANEL_HEADER: &str = "2024 Vote Reg Ideology MAGA Party ID";
 
+/// Column labels for the primary panel.
 const PRIMARY_PANEL_COLUMNS: &[&str] = &[
     "Total",
     "Male",
@@ -18,6 +27,7 @@ const PRIMARY_PANEL_COLUMNS: &[&str] = &[
     "College grad",
 ];
 
+/// Column labels for the secondary panel.
 const SECONDARY_PANEL_COLUMNS: &[&str] = &[
     "Total",
     "Harris",
@@ -32,6 +42,7 @@ const SECONDARY_PANEL_COLUMNS: &[&str] = &[
     "Rep",
 ];
 
+/// Group definitions for the primary panel.
 const PRIMARY_PANEL_GROUPS: &[(&str, &[&str])] = &[
     ("Sex", &["Male", "Female"]),
     ("Race", &["White", "Black", "Hispanic"]),
@@ -39,6 +50,7 @@ const PRIMARY_PANEL_GROUPS: &[(&str, &[&str])] = &[
     ("Education", &["No degree", "College grad"]),
 ];
 
+/// Group definitions for the secondary panel.
 const SECONDARY_PANEL_GROUPS: &[(&str, &[&str])] = &[
     ("2024 Vote", &["Harris", "Trump"]),
     ("Reg", &["Voters"]),
@@ -47,6 +59,11 @@ const SECONDARY_PANEL_GROUPS: &[(&str, &[&str])] = &[
     ("Party ID", &["Dem", "Ind", "Rep"]),
 ];
 
+/// Panel templates used to parse YouGov crosstab panels.
+///
+/// # Items
+/// - Primary template: Demographics (Sex, Race, Age, Education).
+/// - Secondary template: Political (Vote, Ideology, Party).
 pub(super) const PANEL_TEMPLATES: &[PanelTemplate] = &[
     PanelTemplate {
         header: PRIMARY_PANEL_HEADER,

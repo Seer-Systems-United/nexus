@@ -1,5 +1,17 @@
+//! # Polling source registry
+//!
+//! Defines the `SourceId` enum for identifying polling sources
+//! and dispatching data loading to the appropriate source implementation.
+
 use crate::sources::{DataCollection, Scope, Source};
 
+/// Identifier for a polling source.
+///
+/// # Variants
+/// - `Emerson`: Emerson College Polling.
+/// - `Gallup`: Gallup Poll.
+/// - `Ipsos`: Ipsos Poll.
+/// - `YouGov`: YouGov Poll.
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, utoipa::ToSchema,
 )]
@@ -12,8 +24,16 @@ pub enum SourceId {
 }
 
 impl SourceId {
+    /// All available source IDs.
     pub const ALL: [Self; 4] = [Self::Emerson, Self::Gallup, Self::Ipsos, Self::YouGov];
 
+    /// Parse a source ID from a string (case-insensitive).
+    ///
+    /// # Parameters
+    /// - `input`: The string to parse ("emerson", "gallup", "ipsos", "yougov").
+    ///
+    /// # Returns
+    /// - `Some(SourceId)` if recognized, `None` otherwise.
     pub fn parse(input: &str) -> Option<Self> {
         match input.trim().to_ascii_lowercase().as_str() {
             "emerson" => Some(Self::Emerson),
@@ -24,6 +44,10 @@ impl SourceId {
         }
     }
 
+    /// Get the static string ID for this source.
+    ///
+    /// # Returns
+    /// - "emerson", "gallup", "ipsos", or "yougov".
     pub fn id(self) -> &'static str {
         match self {
             Self::Emerson => "emerson",
@@ -33,6 +57,7 @@ impl SourceId {
         }
     }
 
+    /// Get the display name for this source.
     pub fn name(self) -> &'static str {
         match self {
             Self::Emerson => "Emerson",
@@ -42,6 +67,16 @@ impl SourceId {
         }
     }
 
+    /// Load data from this source for the given scope.
+    ///
+    /// # Parameters
+    /// - `scope`: The scope defining how much data to load.
+    ///
+    /// # Returns
+    /// - `Ok(DataCollection)`: The loaded data.
+    ///
+    /// # Errors
+    /// - Returns an error if data loading fails.
     pub async fn load(
         self,
         scope: Scope,

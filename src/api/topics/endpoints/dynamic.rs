@@ -1,3 +1,7 @@
+//! # Dynamic topic endpoint
+//!
+//! Handles requests for dynamic (non-stable) topic data by topic ID.
+
 use crate::api::error::ApiError;
 use crate::api::topics::TopicQuery;
 use crate::topics::types::TopicCollection;
@@ -21,6 +25,19 @@ use axum::extract::{Path, Query};
         (status = 503, description = "Topic data unavailable", body = crate::api::error::ApiErrorBody),
     )
 )]
+/// Handle GET /topics/{topic_id} for dynamic topic queries.
+///
+/// # Parameters
+/// - `topic_id`: Path parameter identifying the topic.
+/// - `query`: Query parameters for scope and count.
+///
+/// # Returns
+/// - `Ok(Json<TopicCollection>)`: The topic data collection.
+///
+/// # Errors
+/// - `400 Bad Request`: Invalid scope query.
+/// - `404 Not Found`: Unknown topic ID.
+/// - `503 Service Unavailable`: Topic data failed to load.
 pub async fn get_topic(
     Path(topic_id): Path<String>,
     Query(query): Query<TopicQuery>,

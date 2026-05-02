@@ -1,8 +1,19 @@
+//! # YouGov template definitions and panel parser
+//!
+//! Defines panel templates for Economist/YouGov crosstabs
+//! and provides parsing functions for panel data.
+
 mod definitions;
 
 use super::utils::*;
 use definitions::PANEL_TEMPLATES;
 
+/// A template for parsing a crosstab panel.
+///
+/// # Fields
+/// - `header`: The header line that identifies this template.
+/// - `columns`: Column labels for this panel.
+/// - `groups`: Group definitions (title + labels).
 #[derive(Clone, Copy)]
 pub(crate) struct PanelTemplate {
     pub(crate) header: &'static str,
@@ -10,6 +21,13 @@ pub(crate) struct PanelTemplate {
     pub(crate) groups: &'static [(&'static str, &'static [&'static str])],
 }
 
+/// Find a panel template that matches a given line.
+///
+/// # Parameters
+/// - `line`: The line to match against templates.
+///
+/// # Returns
+/// - `Some(PanelTemplate)` if a match is found.
 pub(crate) fn panel_template_for(line: &str) -> Option<PanelTemplate> {
     let normalized = normalize_line(line);
     PANEL_TEMPLATES
@@ -18,6 +36,14 @@ pub(crate) fn panel_template_for(line: &str) -> Option<PanelTemplate> {
         .find(|template| normalized == template.header)
 }
 
+/// Parse a panel starting at the given line.
+///
+/// # Parameters
+/// - `lines`: All lines from the PDF text.
+/// - `start`: The line index where the panel header starts.
+///
+/// # Returns
+/// - `Some((DataPanel, next_cursor))` if parsing succeeds.
 pub(crate) fn parse_panel(
     lines: &[String],
     start: usize,
@@ -73,6 +99,7 @@ pub(crate) fn parse_panel(
     Some((panel_from_template(template, rows), cursor))
 }
 
+/// Build a `DataPanel` from a template and parsed rows.
 fn panel_from_template(
     template: PanelTemplate,
     rows: Vec<crate::sources::DataRow>,

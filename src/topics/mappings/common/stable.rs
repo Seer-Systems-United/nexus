@@ -1,3 +1,8 @@
+//! # Stable topic matching
+//!
+//! Matches questions to stable canonical topics.
+//! Checks for approval, direction, ballot, and problem topics.
+
 use super::structure_text;
 use crate::sources::DataStructure;
 use crate::topics::catalog::{

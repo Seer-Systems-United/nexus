@@ -1,5 +1,19 @@
+//! # Ipsos extraction summary
+//!
+//! Creates subtitle strings for Ipsos data collections
+//! showing date range and poll count.
+
 use crate::sources::Scope;
 
+/// Generate a subtitle for an Ipsos data collection.
+///
+/// # Parameters
+/// - `scope`: The scope used for data loading.
+/// - `pdfs`: The collected poll PDFs.
+///
+/// # Returns
+/// - `Some(String)` with formatted subtitle.
+/// - `None` if PDFs list is empty.
 pub(super) fn collection_subtitle(
     scope: Scope,
     pdfs: &[crate::sources::ipsos::server::IpsosPollPdf],

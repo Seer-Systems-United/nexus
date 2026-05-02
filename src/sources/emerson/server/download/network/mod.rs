@@ -1,3 +1,7 @@
+//! # Emerson network fetcher
+//!
+//! Fetches web pages for Emerson release listings.
+
 pub(crate) async fn fetch_page(
     client: &reqwest::Client,
     url: &str,

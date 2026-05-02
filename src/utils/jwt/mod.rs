@@ -1,9 +1,32 @@
+//! # JWT utilities
+//!
+//! Handles JWT (JSON Web Token) generation and validation for Nexus
+//! authentication. Uses HS256 signing algorithm with configurable
+//! audience, issuer, and TTL.
+//!
+//! ## Environment variables
+//!
+//! - `JWT_SECRET`: Signing secret (defaults to development secret).
+//! - `JWT_AUDIENCE`: Token audience (defaults to `nexus`).
+//! - `JWT_ISSUER`: Token issuer (defaults to `nexus-api`).
+//! - `JWT_TTL_SECONDS`: Token time-to-live in seconds (defaults to 12 hours).
+
 use serde::{Deserialize, Serialize};
 
 const DEFAULT_JWT_AUDIENCE: &str = "nexus";
 const DEFAULT_JWT_ISSUER: &str = "nexus-api";
 const DEFAULT_JWT_TTL_SECONDS: u64 = 60 * 60 * 12;
 
+/// JWT generation and validation configuration.
+///
+/// Stores the signing secret, expected audience/issuer, and token TTL.
+///
+/// # Fields
+///
+/// - `secret`: HMAC signing secret for HS256 algorithm.
+/// - `audience`: Expected `aud` claim value (who the token is intended for).
+/// - `issuer`: Expected `iss` claim value (who issued the token).
+/// - `ttl_seconds`: Token validity duration in seconds.
 #[derive(Clone)]
 pub struct JwtConfig {
     pub secret: String,
@@ -13,6 +36,18 @@ pub struct JwtConfig {
 }
 
 impl JwtConfig {
+    /// Reads JWT configuration from environment variables.
+    ///
+    /// # Environment variables
+    ///
+    /// - `JWT_SECRET`: Signing secret (defaults to development secret).
+    /// - `JWT_AUDIENCE`: Token audience (defaults to `nexus`).
+    /// - `JWT_ISSUER`: Token issuer (defaults to `nexus-api`).
+    /// - `JWT_TTL_SECONDS`: TTL in seconds (defaults to 43200 = 12 hours).
+    ///
+    /// # Returns
+    ///
+    /// A configured `JwtConfig` instance.
     pub fn from_env() -> Self {
         let ttl_seconds = std::env::var("JWT_TTL_SECONDS")
             .ok()
@@ -30,6 +65,18 @@ impl JwtConfig {
     }
 }
 
+/// JWT claims structure for Nexus authentication tokens.
+///
+/// Follows standard JWT registered claims plus `sub` for user identification.
+///
+/// # Fields
+///
+/// - `aud`: Audience (must match `JwtConfig::audience`).
+/// - `exp`: Expiration time (Unix timestamp).
+/// - `iat`: Issued-at time (Unix timestamp).
+/// - `iss`: Issuer (must match `JwtConfig::issuer`).
+/// - `nbf`: Not-before time (Unix timestamp, same as `iat`).
+/// - `sub`: Subject (user UUID as string).
 #[derive(Debug, Serialize, Deserialize)]
 pub struct JwtClaims {
     pub aud: String,
@@ -40,6 +87,24 @@ pub struct JwtClaims {
     pub sub: String,
 }
 
+/// Issues a new JWT token for the given user ID.
+///
+/// # Parameters
+///
+/// - `config`: JWT configuration containing secret, audience, issuer, TTL.
+/// - `user_id`: UUID of the authenticated user (stored in `sub` claim).
+///
+/// # Returns
+///
+/// Returns `Ok(token_string)` on success.
+/// Returns `Err` if token encoding fails.
+///
+/// # Token claims
+///
+/// - `sub`: User UUID as string.
+/// - `exp`: Current time + `config.ttl_seconds`.
+/// - `iat`/`nbf`: Current time.
+/// - `aud`/`iss`: From `config`.
 pub fn issue_token(
     config: &JwtConfig,
     user_id: uuid::Uuid,
@@ -61,6 +126,25 @@ pub fn issue_token(
     )
 }
 
+/// Verifies a JWT token and returns the decoded claims.
+///
+/// # Parameters
+///
+/// - `config`: JWT configuration for validation.
+/// - `token`: The JWT string to verify.
+///
+/// # Validation checks
+///
+/// - Signature validity (HS256 with `config.secret`).
+/// - Audience matches `config.audience`.
+/// - Issuer matches `config.issuer`.
+/// - Token is not expired (`exp` claim).
+/// - Token is not used before `nbf` claim.
+///
+/// # Returns
+///
+/// Returns `Ok(JwtClaims)` if the token is valid.
+/// Returns `Err` if verification fails (invalid signature, expired, etc.).
 pub fn verify_token(config: &JwtConfig, token: &str) -> jsonwebtoken::errors::Result<JwtClaims> {
     let mut validation = jsonwebtoken::Validation::new(jsonwebtoken::Algorithm::HS256);
     validation.set_audience(&[config.audience.as_str()]);

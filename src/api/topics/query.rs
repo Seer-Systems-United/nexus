@@ -1,7 +1,18 @@
+//! # Topic query parsing utilities
+//!
+//! Defines query structures and parsing logic for topic endpoint requests,
+//! converting string scopes into typed `Scope` values.
+
 use crate::api::error::ApiError;
 use crate::sources::Scope;
 use serde::Deserialize;
 
+/// Query parameters for topic data requests.
+///
+/// # Fields
+/// - `scope`: Optional scope string (e.g., "latest", "last_7_days").
+/// - `count`: Optional count for scoped queries (alias: `n`).
+/// - `n`: Alias for `count`.
 #[derive(Debug, Deserialize)]
 pub struct TopicQuery {
     pub scope: Option<String>,
@@ -9,6 +20,13 @@ pub struct TopicQuery {
     pub n: Option<u32>,
 }
 
+/// Extended query parameters for headline topic requests.
+///
+/// # Fields
+/// - `scope`: Optional scope string.
+/// - `count`: Optional count for scoped queries (alias: `n`).
+/// - `n`: Alias for `count`.
+/// - `min_polls`: Minimum number of recent matching polls required.
 #[derive(Debug, Deserialize)]
 pub struct HeadlineQuery {
     pub scope: Option<String>,
@@ -17,6 +35,16 @@ pub struct HeadlineQuery {
     pub min_polls: Option<usize>,
 }
 
+/// Parse a `TopicQuery` into a typed `Scope` value.
+///
+/// # Parameters
+/// - `query`: The topic query containing optional scope and count parameters.
+///
+/// # Returns
+/// - `Ok(Scope)`: The parsed scope (defaults to `Scope::Latest` if not specified).
+///
+/// # Errors
+/// - `400 Bad Request`: Unsupported scope string or missing count for counted scopes.
 pub fn parse_topic_scope(query: &TopicQuery) -> Result<Scope, ApiError> {
     parse_scope(
         query.scope.as_deref(),
@@ -25,6 +53,18 @@ pub fn parse_topic_scope(query: &TopicQuery) -> Result<Scope, ApiError> {
     )
 }
 
+/// Parse a scope string and count into a typed `Scope` value.
+///
+/// # Parameters
+/// - `scope`: Optional scope string to parse.
+/// - `count`: Optional count value for scoped queries.
+/// - `default_scope`: Default scope to use if none is specified.
+///
+/// # Returns
+/// - `Ok(Scope)`: The parsed scope value.
+///
+/// # Errors
+/// - `400 Bad Request`: Unsupported scope string or missing/zero count.
 pub(super) fn parse_scope(
     scope: Option<&str>,
     count: Option<u32>,
@@ -33,6 +73,7 @@ pub(super) fn parse_scope(
     let Some(scope) = scope else {
         return Ok(default_scope);
     };
+    // Normalize scope: lowercase and replace hyphens with underscores
     let normalized = scope.trim().to_ascii_lowercase().replace('-', "_");
 
     match normalized.as_str() {
@@ -50,6 +91,16 @@ pub(super) fn parse_scope(
     }
 }
 
+/// Validate and return the count parameter for scoped queries.
+///
+/// # Parameters
+/// - `count`: Optional count value.
+///
+/// # Returns
+/// - `Ok(u32)`: The validated count (must be non-zero).
+///
+/// # Errors
+/// - `400 Bad Request`: Count is missing or zero.
 fn required_count(count: Option<u32>) -> Result<u32, ApiError> {
     let count = count.ok_or_else(|| ApiError::bad_request("scope count is required"))?;
 

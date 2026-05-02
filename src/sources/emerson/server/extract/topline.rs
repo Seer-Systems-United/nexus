@@ -1,5 +1,20 @@
+//! # Emerson topline sheet parser
+//!
+//! Extracts bar graph data from Emerson "Topline Results" sheets.
+//! Parses question headers and frequency/percent rows.
+
 use super::utils::*;
 
+/// Parse a topline sheet into a list of bar graph data structures.
+///
+/// Iterates through rows looking for question headers, then extracts
+/// answer labels and valid percent values until an empty row is found.
+///
+/// # Parameters
+/// - `rows`: All rows from the topline sheet.
+///
+/// # Returns
+/// - `Vec<DataStructure>`: Bar graphs for each valid question found.
 pub(crate) fn parse_topline_sheet(
     rows: &[Vec<calamine::Data>],
 ) -> Vec<crate::sources::DataStructure> {
@@ -13,6 +28,7 @@ pub(crate) fn parse_topline_sheet(
             continue;
         }
 
+        // Find the header row (should have "Frequency" and "Valid Percent" columns)
         let mut header_row = index + 1;
         while header_row < rows.len() && row_is_empty(&rows[header_row]) {
             header_row += 1;
@@ -39,6 +55,7 @@ pub(crate) fn parse_topline_sheet(
                 continue;
             }
 
+            // Non-empty first column indicates a new question section
             if !cell_text(rows, cursor, 0).is_empty() {
                 break;
             }

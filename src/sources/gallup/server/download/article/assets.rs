@@ -1,6 +1,19 @@
+//! # Gallup article asset download helpers
+//!
+//! Fetches PDF and chart CSV assets from Gallup articles.
+
 use super::ArticleStub;
 use crate::sources::gallup::server::download::{datawrapper_dataset_url, network};
 
+/// Fetch a Gallup article PDF if URL is available.
+///
+/// # Parameters
+/// - `client`: HTTP client.
+/// - `pdf_url`: Optional PDF URL to fetch.
+/// - `stub`: Article stub for logging.
+///
+/// # Returns
+/// - `(Option<Vec<u8>>, bool)`: PDF bytes if successful, and whether it failed.
 pub(super) async fn fetch_pdf(
     client: &reqwest::Client,
     pdf_url: Option<&str>,
@@ -25,6 +38,15 @@ pub(super) async fn fetch_pdf(
     }
 }
 
+/// Fetch all chart CSVs from a list of chart stubs.
+///
+/// # Parameters
+/// - `client`: HTTP client.
+/// - `chart_stubs`: List of chart stubs with titles and URLs.
+/// - `stub`: Article stub for logging.
+///
+/// # Returns
+/// - `(Vec<GallupChartAsset>, usize)`: Downloaded charts and failure count.
 pub(super) async fn fetch_charts(
     client: &reqwest::Client,
     chart_stubs: Vec<crate::sources::gallup::server::download::parse::ChartStub>,

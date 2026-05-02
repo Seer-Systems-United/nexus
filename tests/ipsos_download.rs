@@ -1,3 +1,7 @@
+//! # Ipsos download tests
+//!
+//! Tests for Ipsos article parsing and download URL logic.
+
 use nexus::sources::date::SimpleDate;
 use nexus::sources::ipsos::server::download::{
     parse_article_details, parse_landing_stubs, parse_text_date,
