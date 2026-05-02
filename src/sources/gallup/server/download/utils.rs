@@ -15,11 +15,11 @@ pub(crate) fn absolute_url(url: &str) -> String {
     }
 }
 
-pub(crate) fn gallup_search_page_url(page_number: usize) -> String {
+pub fn gallup_search_page_url(page_number: usize) -> String {
     format!("{GALLUP_SEARCH_URL}&p={page_number}")
 }
 
-pub(crate) fn datawrapper_dataset_url(chart_url: &str) -> String {
+pub fn datawrapper_dataset_url(chart_url: &str) -> String {
     let normalized = chart_url.trim_end_matches('/');
     format!("{normalized}/dataset.csv")
 }

@@ -1,53 +1,18 @@
-import type { SourceCollection, SourceDataStructure } from "../../../api/client";
+import type { SourceDataStructure } from "../../../api/client";
 import { BarChartComponent } from "../../../components/charts";
 import { LineChartComponent } from "../../../components/charts";
 import { PieChartComponent } from "../../../components/charts";
 import { CrosstabTable } from "../../../components/charts";
 
-function isVisualStructure(structure: SourceDataStructure): boolean {
-  return structure.type !== "Unstructured";
-}
-
-function sourceSummary(source: {
-  collection: SourceCollection | null;
-  error: string | null;
-}): string {
-  if (!source.collection) {
-    return source.error ?? "Source data is unavailable.";
-  }
-
-  const structureCount = source.collection.data.length;
-  const structureLabel = structureCount === 1 ? "view" : "views";
-
-  if (source.collection.subtitle) {
-    return `${structureCount} ${structureLabel} - ${source.collection.subtitle}`;
-  }
-
-  return `${structureCount} ${structureLabel} available`;
-}
-
-function collectionSummary(collection: SourceCollection): string {
-  const graphCount = collection.data.filter(isVisualStructure).length;
-  const graphLabel = graphCount === 1 ? "graph" : "graphs";
-
-  if (collection.subtitle) {
-    return `${collection.subtitle} - ${graphCount} ${graphLabel}`;
-  }
-
-  return `${graphCount} ${graphLabel} in latest source response`;
-}
-
 type SourceStructureProps = {
   structure: SourceDataStructure;
-  key: string;
 };
 
-export function SourceStructure({ structure, key }: SourceStructureProps) {
+export function SourceStructure({ structure }: SourceStructureProps) {
   switch (structure.type) {
     case "BarGraph":
       return (
         <BarChartComponent
-          key={key}
           data={structure.x.map((label, index) => ({
             label,
             value: structure.y[index] ?? 0,
@@ -59,7 +24,6 @@ export function SourceStructure({ structure, key }: SourceStructureProps) {
     case "LineGraph":
       return (
         <LineChartComponent
-          key={key}
           data={structure.x.map((label, index) => {
             const row: { label: string; [key: string]: number | string | null } = { label };
             for (const series of structure.series) {
@@ -75,7 +39,6 @@ export function SourceStructure({ structure, key }: SourceStructureProps) {
     case "PieChart":
       return (
         <PieChartComponent
-          key={key}
           data={structure.slices}
           title={structure.title}
           y_unit={structure.y_unit}
@@ -83,14 +46,14 @@ export function SourceStructure({ structure, key }: SourceStructureProps) {
       );
     case "Crosstab":
       return (
-        <article className="source-card source-card-table" key={key}>
+        <article className="source-card source-card-table">
           <div className="source-card-header">
             <h3>{structure.title}</h3>
             <p>{structure.prompt}</p>
           </div>
           <div className="crosstab-stack">
             {structure.panels.map((panel, index) => (
-              <div className="crosstab-frame" key={`${key}-panel-${index}`}>
+              <div className="crosstab-frame" key={`${structure.title}-${index}`}>
                 <CrosstabTable panel={{ title: structure.title, ...panel }} unit={structure.y_unit} />
               </div>
             ))}
@@ -99,7 +62,7 @@ export function SourceStructure({ structure, key }: SourceStructureProps) {
       );
     case "Unstructured":
       return (
-        <article className="source-card source-card-text" key={key}>
+        <article className="source-card source-card-text">
           <div className="source-card-header">
             <h3>Source Notes</h3>
           </div>
@@ -108,5 +71,3 @@ export function SourceStructure({ structure, key }: SourceStructureProps) {
       );
   }
 }
-
-export { sourceSummary, collectionSummary, isVisualStructure };

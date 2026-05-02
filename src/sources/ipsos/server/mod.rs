@@ -1,8 +1,8 @@
 use crate::sources::{DataCollection, Scope, Source, persistance::StorageWrapper};
 use std::io::{Error as IoError, ErrorKind};
 
-mod download;
-mod extract;
+pub mod download;
+pub mod extract;
 
 #[derive(Debug, Clone)]
 pub(crate) struct IpsosPollPdf {

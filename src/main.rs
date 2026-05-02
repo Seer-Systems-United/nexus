@@ -1,14 +1,5 @@
-pub mod api;
-pub mod database;
-pub mod health;
-pub mod sources;
-pub mod state;
-pub mod topics;
-pub mod utils;
-
-pub use state::AppState;
-
 use axum::{Router, routing::get};
+use nexus::{AppState, api, health, topics};
 use tokio::net::TcpListener;
 use tower_http::{
     services::{ServeDir, ServeFile},

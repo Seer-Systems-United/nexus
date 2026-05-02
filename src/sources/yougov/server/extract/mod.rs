@@ -67,7 +67,7 @@ pub(crate) fn extract_yougov_data(
     })
 }
 
-pub(crate) fn extract_document_header(
+pub fn extract_document_header(
     lines: &[String],
 ) -> Result<(String, Option<String>), Box<dyn Error + Send + Sync>> {
     let mut non_empty = lines
@@ -79,21 +79,4 @@ pub(crate) fn extract_document_header(
     };
     let subtitle = non_empty.next().cloned();
     Ok((title, subtitle))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn document_header_extraction_finds_title() {
-        let lines = vec![
-            String::new(),
-            "The Economist/YouGov Poll".to_string(),
-            "April 1 - 4, 2026".to_string(),
-        ];
-        let (title, subtitle) = extract_document_header(&lines).unwrap();
-        assert_eq!(title, "The Economist/YouGov Poll");
-        assert_eq!(subtitle.as_deref(), Some("April 1 - 4, 2026"));
-    }
 }
