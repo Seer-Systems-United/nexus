@@ -3,7 +3,7 @@
 //! Orchestrates downloading and extracting YouGov poll PDFs.
 //! Implements the `Source` trait for YouGov.
 
-use crate::sources::{DataCollection, Scope, Source, persistance::StorageWrapper};
+use crate::sources::{DataCollection, Scope, persistance::StorageWrapper};
 
 pub mod download;
 
