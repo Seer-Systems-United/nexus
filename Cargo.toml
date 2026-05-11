@@ -4,8 +4,15 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+console = { version = "0.16.3", features = ["std"] }
+diesel = { version = "2.3.9", features = ["postgres", "r2d2", "chrono", "uuid"] }
+diesel_full_text_search = "2.3.0"
+dotenvy = "0.15.7"
 human_name = "2.0.4"
 rake = "0.3.6"
 rust-bert = "0.23.0"
 rust-stemmers = "1.2.0"
 stop-words = "0.10.0"
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter", "fmt"] }
+uuid = { version = "1.23.1", features = ["v4"] }
