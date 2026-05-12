@@ -2,7 +2,7 @@ use diesel::RunQueryDsl;
 use tracing::{debug, error, instrument};
 
 use crate::{
-    database::{get_connection, ops::person::Person},
+    database::{get_connection, ops::person::DatabasePerson},
     schema::{self},
 };
 
@@ -11,8 +11,8 @@ fn create_person(
     surname: String,
     suffix: Option<String>,
     prefix: Option<String>,
-) -> Person {
-    Person {
+) -> DatabasePerson {
+    DatabasePerson {
         id: uuid::Uuid::new_v4(),
         given_name,
         surname,
@@ -27,7 +27,7 @@ pub fn create_person_in_db(
     surname: String,
     suffix: Option<String>,
     prefix: Option<String>,
-) -> Result<Person, diesel::result::Error> {
+) -> Result<DatabasePerson, diesel::result::Error> {
     debug!("creating person");
 
     let mut conn = get_connection();

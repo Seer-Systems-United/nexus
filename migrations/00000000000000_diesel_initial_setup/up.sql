@@ -34,3 +34,19 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE TABLE people (
+    id UUID PRIMARY KEY,
+    given_name VARCHAR NOT NULL,
+    surname VARCHAR NOT NULL,
+    suffix VARCHAR,
+    prefix VARCHAR
+);
+
+CREATE TABLE questions (
+    id UUID PRIMARY KEY,
+    text VARCHAR NOT NULL,
+    keywords TSVECTOR NOT NULL
+);
+
+CREATE INDEX questions_keywords_idx ON questions USING GIN (keywords);

@@ -1,6 +1,9 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
+    use diesel::sql_types::*;
+    use diesel_full_text_search::Tsvector;
+
     people (id) {
         id -> Uuid,
         given_name -> Varchar,
@@ -11,8 +14,8 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel_full_text_search::Tsvector;
     use diesel::sql_types::*;
+    use diesel_full_text_search::Tsvector;
 
     questions (id) {
         id -> Uuid,
@@ -21,4 +24,7 @@ diesel::table! {
     }
 }
 
-diesel::joinable!(questions -> people (id));
+diesel::allow_tables_to_appear_in_same_query!(
+    people,
+    questions,
+);

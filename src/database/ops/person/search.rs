@@ -2,18 +2,20 @@ use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl};
 use tracing::{debug, error};
 
 use crate::{
-    database::{get_connection, ops::person::Person},
+    database::{get_connection, ops::person::DatabasePerson},
     schema::{self},
 };
 
-pub fn search_people_by_surname(surname: &str) -> Result<Vec<Person>, diesel::result::Error> {
+pub fn search_people_by_surname(
+    surname: &str,
+) -> Result<Vec<DatabasePerson>, diesel::result::Error> {
     debug!(surname = %surname, "searching people by surname");
 
     let mut conn = get_connection();
 
     match schema::people::table
         .filter(schema::people::surname.eq(surname))
-        .load::<Person>(&mut conn)
+        .load::<DatabasePerson>(&mut conn)
     {
         Ok(people) => {
             debug!(count = people.len(), surname = %surname, "found people by surname");
@@ -26,14 +28,16 @@ pub fn search_people_by_surname(surname: &str) -> Result<Vec<Person>, diesel::re
     }
 }
 
-pub fn search_people_by_given_name(given_name: &str) -> Result<Vec<Person>, diesel::result::Error> {
+pub fn search_people_by_given_name(
+    given_name: &str,
+) -> Result<Vec<DatabasePerson>, diesel::result::Error> {
     debug!(given_name = %given_name, "searching people by given name");
 
     let mut conn = get_connection();
 
     match schema::people::table
         .filter(schema::people::given_name.eq(given_name))
-        .load::<Person>(&mut conn)
+        .load::<DatabasePerson>(&mut conn)
     {
         Ok(people) => {
             debug!(count = people.len(), given_name = %given_name, "found people by given name");
@@ -49,7 +53,7 @@ pub fn search_people_by_given_name(given_name: &str) -> Result<Vec<Person>, dies
 pub fn search_people_by_full_name(
     given_name: &str,
     surname: &str,
-) -> Result<Vec<Person>, diesel::result::Error> {
+) -> Result<Vec<DatabasePerson>, diesel::result::Error> {
     debug!(
         given_name = %given_name,
         surname = %surname,
@@ -64,7 +68,7 @@ pub fn search_people_by_full_name(
                 .eq(given_name)
                 .and(schema::people::surname.eq(surname)),
         )
-        .load::<Person>(&mut conn)
+        .load::<DatabasePerson>(&mut conn)
     {
         Ok(people) => {
             debug!(

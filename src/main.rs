@@ -1,15 +1,17 @@
 pub mod database;
 pub mod nlp;
+pub mod poll;
 pub mod schema;
 pub mod utils;
 
 use crate::{
-    database::init_database,
+    database::{init_database, ops::question::search::search_questions_by_keywords},
     nlp::{
         init_nlp,
         keywords::extract_keywords,
         subjects::{SubjectType, extract_subjects},
     },
+    poll::question::Question,
     utils::logging::init_tracing,
 };
 
@@ -21,22 +23,11 @@ fn main() {
     // Example text to extract keywords from
     let text = "5. Should Trump Have Sought Congressional Approval Before Strikes in Iran";
 
-    extract_keywords(text);
-    let sub = extract_subjects(&text);
+    //let question = Question::new(text);
+    let resp = search_questions_by_keywords("Trump");
 
-    dbg!(sub);
+    dbg!(resp);
 
     let text = "Favorability of Trump Administration Figures — Kristi Noem";
-
-    extract_keywords(text);
-    let sub = extract_subjects(&text);
-
-    for sub in &sub {
-        if sub.subject_type == SubjectType::Person {
-            let name = human_name::Name::parse(&sub.text).unwrap();
-            dbg!(name.given_name().unwrap());
-        }
-    }
-
-    dbg!(sub);
+    //let question = Question::new(text);
 }

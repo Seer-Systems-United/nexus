@@ -12,7 +12,7 @@ use crate::schema::people;
 
 #[derive(Queryable, Selectable, Insertable, Debug)]
 #[diesel(table_name = people)]
-pub struct Person {
+pub struct DatabasePerson {
     pub id: uuid::Uuid,
     pub given_name: String,
     pub surname: String,
