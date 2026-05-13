@@ -1,3 +1,11 @@
+pub mod demographic;
+pub mod person;
+pub mod poll;
+pub mod question;
+pub mod response;
+pub mod response_unit;
+pub mod source;
+
 use diesel::{
     PgConnection,
     r2d2::{ConnectionManager, Pool, PooledConnection},
@@ -5,8 +13,6 @@ use diesel::{
 use dotenvy::dotenv;
 use std::{env, sync::OnceLock};
 use tracing::{debug, info};
-
-pub mod ops;
 
 pub type DbConnectionManager = ConnectionManager<PgConnection>;
 pub type DbPool = Pool<DbConnectionManager>;

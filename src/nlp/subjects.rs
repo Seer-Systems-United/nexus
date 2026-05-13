@@ -57,10 +57,8 @@ pub fn extract_subjects(text: &str) -> Vec<Subject> {
                 subject.text.push_str(&entity.word);
                 continue;
             } else {
-                // Otherwise, finalize the current subject and start a new one
                 debug!(?subject, "finalizing current subject");
                 subjects.push(subject.clone());
-                current_subject = None;
             }
         }
 

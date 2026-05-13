@@ -13,6 +13,7 @@ use crate::schema::questions;
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct DatabaseQuestion {
     pub id: uuid::Uuid,
+    pub poll_id: uuid::Uuid,
     pub text: String,
     pub keywords: PgTsVector,
 }

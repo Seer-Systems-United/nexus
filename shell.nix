@@ -37,6 +37,7 @@ pkgs.mkShell {
     pkgs.cmake
     pkgs.ninja
     pkgs.gcc
+    pkgs.linuxPackages.perf
     pkgs.openssl
     pkgs.postgresql
     pkgs.diesel-cli

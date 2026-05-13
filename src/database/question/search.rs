@@ -3,7 +3,8 @@ use diesel_full_text_search::{TsVectorExtensions, plainto_tsquery};
 use tracing::{debug, error};
 
 use crate::{
-    database::{get_connection, ops::question::DatabaseQuestion},
+    database::{get_connection, question::DatabaseQuestion},
+    poll::question::is_non_question_text,
     schema::{self},
 };
 
@@ -20,6 +21,7 @@ pub fn search_questions_by_text(
         .load::<DatabaseQuestion>(&mut conn)
     {
         Ok(questions) => {
+            let questions = filter_non_questions(questions);
             debug!(count = questions.len(), question_text = %question_text, "found questions by text");
             Ok(questions)
         }
@@ -43,6 +45,7 @@ pub fn search_questions_by_keywords(
         .load::<DatabaseQuestion>(&mut conn)
     {
         Ok(questions) => {
+            let questions = filter_non_questions(questions);
             debug!(count = questions.len(), keywords = %keywords, "found questions by keywords");
             Ok(questions)
         }
@@ -51,4 +54,11 @@ pub fn search_questions_by_keywords(
             Err(e)
         }
     }
+}
+
+fn filter_non_questions(questions: Vec<DatabaseQuestion>) -> Vec<DatabaseQuestion> {
+    questions
+        .into_iter()
+        .filter(|question| !is_non_question_text(&question.text))
+        .collect()
 }

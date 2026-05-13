@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use crate::poll::response::demographic::{
     education_level::EducationLevel, ethnicity::Ethnicity, ideology::Ideology,
     partisan_affiliation::PartisanAffiliation, sex::Sex,
@@ -9,6 +11,7 @@ pub mod ideology;
 pub mod partisan_affiliation;
 pub mod sex;
 
+#[derive(Debug, Clone)]
 pub enum Demographic {
     All,
     Age {
@@ -34,6 +37,6 @@ pub enum Demographic {
         partisan_affiliation: PartisanAffiliation,
     },
     Other {
-        description: String,
+        description: Cow<'static, str>,
     },
 }

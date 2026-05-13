@@ -2,7 +2,7 @@ use diesel::{QueryDsl, RunQueryDsl, SelectableHelper};
 use tracing::{debug, error};
 
 use crate::{
-    database::{get_connection, ops::question::DatabaseQuestion},
+    database::{get_connection, question::DatabaseQuestion},
     schema::{self},
 };
 
