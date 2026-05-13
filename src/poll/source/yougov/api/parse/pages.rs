@@ -1,9 +1,11 @@
 use rayon::iter::{IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator};
+use tracing::instrument;
 
 use crate::poll::question::Question;
 
 use super::page::parse_page;
 
+#[instrument(level = "info", skip_all, fields(page_count = pages.len()))]
 pub fn parse_pages(pages: &[String]) -> Vec<Question> {
     let mut parsed_questions: Vec<(usize, Question)> = pages
         .par_iter()

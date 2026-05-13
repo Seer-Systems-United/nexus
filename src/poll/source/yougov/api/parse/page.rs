@@ -1,3 +1,5 @@
+use tracing::instrument;
+
 use crate::poll::question::{Question, is_non_question_text};
 
 use super::{
@@ -5,6 +7,7 @@ use super::{
     response::{is_column_header_line, parse_responses_from_iter},
 };
 
+#[instrument(level = "debug", skip_all, fields(page_len = page.len()))]
 pub fn parse_page(page: &str) -> Option<Question> {
     if is_non_question_text(page) {
         return None;

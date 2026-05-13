@@ -4,6 +4,10 @@ pub mod poll;
 pub mod schema;
 pub mod utils;
 
+use std::time::Instant;
+
+use tracing::info;
+
 use crate::{
     database::{
         init_database,
@@ -18,6 +22,7 @@ use crate::{
 };
 
 fn main() {
+    let start = Instant::now();
     init_tracing();
     init_nlp();
     init_database();
@@ -67,4 +72,6 @@ fn main() {
     let resp = search_questions_by_keywords("Trump");
 
     let _ = dbg!(resp);
+
+    info!(elapsed = ?start.elapsed(), "Nexus poll processing complete");
 }

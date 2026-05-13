@@ -1,21 +1,26 @@
+use tracing::instrument;
+
 use crate::utils::pdf::extract::extract_pdf_from_url;
 
 use super::models::{CmsDocumentEditorial, SurveyApiResponse, SurveyResponseItem};
 
 const LOOKUP_API_URL: &str = "https://api-test.yougov.com/public-data/v5/us/search/entity/bb747389-a904-11e1-9412-005056900141/surveys/";
 
+#[instrument(level = "info", skip_all)]
 pub fn get_latest_editorial_pdf_pages() -> Vec<String> {
     get_latest_editorial_document()
         .map(|document| extract_pdf_from_url(&document.url))
         .unwrap_or_default()
 }
 
+#[instrument(level = "info", skip_all)]
 pub fn get_latest_editorial_url() -> String {
     get_latest_editorial_document()
         .map(|document| document.url)
         .unwrap_or_default()
 }
 
+#[instrument(level = "info", skip_all)]
 pub fn get_latest_editorial_document() -> Option<CmsDocumentEditorial> {
     let response = get_latest_surveys();
 
@@ -28,6 +33,7 @@ pub fn get_latest_editorial_document() -> Option<CmsDocumentEditorial> {
     None
 }
 
+#[instrument(level = "info", skip_all)]
 pub fn get_latest_surveys() -> SurveyApiResponse {
     let response = reqwest::blocking::get(LOOKUP_API_URL)
         .unwrap()
