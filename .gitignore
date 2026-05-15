@@ -46,3 +46,5 @@ frontend/.vite
 #/target
 
 .cache
+
+*.sqlite

@@ -25,7 +25,7 @@ tracing-subscriber = { version = "0.3.23", features = ["env-filter", "fmt"] }
 uuid = { version = "1.23.1", features = ["v4"] }
 
 [features]
-default = ["postgres"]
+default = ["sqlite"]
 postgres = ["diesel/postgres", "dep:diesel_full_text_search"]
 sqlite = [
     "diesel/sqlite",
