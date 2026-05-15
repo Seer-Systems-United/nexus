@@ -1,4 +1,4 @@
-use crate::{expr::traits::TableTrait, poll::source::yougov::YouGov, schema};
+use crate::{expr::traits::TableTrait, poll::source::yougov::YouGov};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Operation {
@@ -43,12 +43,6 @@ pub trait PollSourceFilter {
     const SOURCE_NAME: &'static str;
 }
 
-pub enum SelectedTable {
-    Polls(schema::polls::table),
-    People(schema::people::table),
-    Responses(schema::responses::table),
-}
-
 impl TableTrait for Polls {
     const TABLE: Table = Table::Polls;
 }
@@ -67,14 +61,4 @@ impl SourceFilter for YouGov {
 
 impl PollSourceFilter for YouGov {
     const SOURCE_NAME: &'static str = YouGov::SOURCE_NAME;
-}
-
-impl Table {
-    pub fn to_table(&self) -> SelectedTable {
-        match self {
-            Self::Polls => SelectedTable::Polls(schema::polls::table),
-            Self::People => SelectedTable::People(schema::people::table),
-            Self::Responses => SelectedTable::Responses(schema::responses::table),
-        }
-    }
 }

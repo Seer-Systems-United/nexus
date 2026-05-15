@@ -1,8 +1,7 @@
 use tracing::{debug, info, instrument, warn};
 
-use crate::utils::pdf::extract::extract_pdf_from_url;
 use crate::{
-    database::poll::get::get_poll_by_timestamp,
+    database::{BackendTrait, default_backend},
     poll::{
         question::Question,
         source::yougov::api::{
@@ -10,6 +9,7 @@ use crate::{
             parse::parse_pages,
         },
     },
+    utils::pdf::extract::extract_pdf_from_url,
 };
 use chrono::{DateTime, Utc};
 
@@ -77,8 +77,14 @@ pub fn has_new_poll() -> bool {
 
     debug!(created_at = %doc.created_at, parsed_latest = %latest, "checking for new poll by timestamp");
 
-    // Try to get poll with time
-    let exists = get_poll_by_timestamp(latest).is_ok();
-    info!(exists, "poll existence check complete");
-    exists
+    match default_backend().and_then(|backend| backend.poll_exists_by_timestamp(latest)) {
+        Ok(exists) => {
+            info!(exists, "poll existence check complete");
+            exists
+        }
+        Err(error) => {
+            warn!(%error, "failed to check poll existence");
+            false
+        }
+    }
 }

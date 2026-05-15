@@ -6,10 +6,11 @@ edition = "2024"
 [dependencies]
 chrono = "0.4.44"
 console = { version = "0.16.3", features = ["std"] }
-diesel = { version = "2.3.9", features = ["postgres", "r2d2", "chrono", "uuid"] }
-diesel_full_text_search = "2.3.0"
+diesel = { version = "2.3.9", default-features = false, features = ["r2d2", "chrono", "uuid"] }
+diesel_full_text_search = { version = "2.3.0", optional = true }
 dotenvy = "0.15.7"
 human_name = "2.0.4"
+libsqlite3-sys = { version = "0.37", features = ["bundled"], optional = true }
 pdf_oxide = "0.3.46"
 rake = "0.3.6"
 rayon = "1.12.0"
@@ -23,9 +24,23 @@ tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter", "fmt"] }
 uuid = { version = "1.23.1", features = ["v4"] }
 
+[features]
+default = ["postgres"]
+postgres = ["diesel/postgres", "dep:diesel_full_text_search"]
+sqlite = [
+    "diesel/sqlite",
+    "diesel/returning_clauses_for_sqlite_3_35",
+    "dep:libsqlite3-sys",
+]
+
 [dev-dependencies]
 criterion = "0.5.1"
 
 [[bench]]
 name = "yougov_parsing"
 harness = false
+
+[[test]]
+name = "sqlite_expression"
+path = "tests/sqlite_expression.rs"
+required-features = ["sqlite"]

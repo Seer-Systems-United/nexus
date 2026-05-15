@@ -1,28 +1,16 @@
 use std::{fmt, marker::PhantomData};
 
-use diesel::{QueryDsl, RunQueryDsl, SelectableHelper};
-use tracing::{debug, trace, warn};
+use tracing::trace;
 
 use crate::database::{
-    get_connection, person::DatabasePerson, poll::DatabasePoll, response::DatabaseResponse,
+    BackendTrait, person::DatabasePerson, poll::DatabasePoll, response::DatabaseResponse,
 };
 use crate::expr::{
-    get::{
-        GetOp,
-        names::where_as::WhereAsFilter,
-        polls::{from::PollFromFilter, from_source::FromSourceFilter, to::PollToFilter},
-        responses::{
-            from::ResponseFromFilter, from_demographic::FromDemographicFilter,
-            from_question::FromQuestionFilter, from_source::ResponseFromSourceFilter,
-            to::ResponseToFilter,
-        },
-    },
+    get::GetOp,
     ops::{Filter, People, Polls, Responses, Table},
-    traits::{FilterApplication, FilterTrait, OperationTrait},
+    traits::OperationTrait,
 };
-use crate::schema;
 
-mod common;
 pub mod get;
 pub mod ops;
 pub mod traits;
@@ -81,14 +69,18 @@ impl<OP: OperationTrait, TableMarker, Out> NexusExpression<OP, TableMarker, Out>
 
 #[derive(Debug)]
 pub enum ExpressionError {
+    Connection(diesel::ConnectionError),
     Database(diesel::result::Error),
     InvalidFilter { table: Table, filter: Filter },
     InvalidDate { value: String },
+    InvalidTimestamp { value: String },
+    InvalidUuid { value: String },
 }
 
 impl fmt::Display for ExpressionError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::Connection(error) => write!(f, "database connection error: {error}"),
             Self::Database(error) => write!(f, "database error: {error}"),
             Self::InvalidFilter { table, filter } => {
                 write!(f, "invalid filter {filter:?} for table {table:?}")
@@ -99,6 +91,13 @@ impl fmt::Display for ExpressionError {
                     "invalid date {value:?}; expected MM-DD-YYYY or YYYY-MM-DD"
                 )
             }
+            Self::InvalidTimestamp { value } => {
+                write!(
+                    f,
+                    "invalid timestamp {value:?}; expected YYYY-MM-DD HH:MM:SS"
+                )
+            }
+            Self::InvalidUuid { value } => write!(f, "invalid UUID {value:?}"),
         }
     }
 }
@@ -111,86 +110,35 @@ impl From<diesel::result::Error> for ExpressionError {
     }
 }
 
+impl From<diesel::ConnectionError> for ExpressionError {
+    fn from(error: diesel::ConnectionError) -> Self {
+        Self::Connection(error)
+    }
+}
+
 impl NexusExpression<GetOp, People, DatabasePerson> {
-    pub fn execute(&self) -> Result<Vec<DatabasePerson>, ExpressionError> {
-        debug!(filters = ?self.filters(), "executing Get(People) query");
-
-        let mut conn = get_connection();
-        let mut query = schema::people::table.into_boxed();
-
-        for filter in self.filters() {
-            match WhereAsFilter::apply_filter(query, filter, &mut conn)? {
-                FilterApplication::Applied(next_query) => query = next_query,
-                FilterApplication::Empty => return Ok(Vec::new()),
-                FilterApplication::Skipped(_) => return invalid_filter(Table::People, filter),
-            }
-        }
-
-        query
-            .select(DatabasePerson::as_select())
-            .load::<DatabasePerson>(&mut conn)
-            .map_err(ExpressionError::from)
+    pub fn execute_with(
+        &self,
+        backend: &impl BackendTrait,
+    ) -> Result<Vec<DatabasePerson>, ExpressionError> {
+        backend.get_people(self.filters())
     }
 }
 
 impl NexusExpression<GetOp, Polls, DatabasePoll> {
-    pub fn execute(&self) -> Result<Vec<DatabasePoll>, ExpressionError> {
-        debug!(filters = ?self.filters(), "executing Get(Polls) query");
-
-        let mut conn = get_connection();
-        let mut query = schema::polls::table.into_boxed();
-
-        for filter in self.filters() {
-            let application = FromSourceFilter::apply_filter(query, filter, &mut conn)?
-                .or_else(|query| PollFromFilter::apply_filter(query, filter, &mut conn))?
-                .or_else(|query| PollToFilter::apply_filter(query, filter, &mut conn))?;
-
-            match application {
-                FilterApplication::Applied(next_query) => query = next_query,
-                FilterApplication::Empty => return Ok(Vec::new()),
-                FilterApplication::Skipped(_) => return invalid_filter(Table::Polls, filter),
-            }
-        }
-
-        query
-            .select(DatabasePoll::as_select())
-            .load::<DatabasePoll>(&mut conn)
-            .map_err(ExpressionError::from)
+    pub fn execute_with(
+        &self,
+        backend: &impl BackendTrait,
+    ) -> Result<Vec<DatabasePoll>, ExpressionError> {
+        backend.get_polls(self.filters())
     }
 }
 
 impl NexusExpression<GetOp, Responses, DatabaseResponse> {
-    pub fn execute(&self) -> Result<Vec<DatabaseResponse>, ExpressionError> {
-        debug!(filters = ?self.filters(), "executing Get(Responses) query");
-
-        let mut conn = get_connection();
-        let mut query = schema::responses::table.into_boxed();
-
-        for filter in self.filters() {
-            let application = ResponseFromSourceFilter::apply_filter(query, filter, &mut conn)?
-                .or_else(|query| ResponseFromFilter::apply_filter(query, filter, &mut conn))?
-                .or_else(|query| ResponseToFilter::apply_filter(query, filter, &mut conn))?
-                .or_else(|query| FromQuestionFilter::apply_filter(query, filter, &mut conn))?
-                .or_else(|query| FromDemographicFilter::apply_filter(query, filter, &mut conn))?;
-
-            match application {
-                FilterApplication::Applied(next_query) => query = next_query,
-                FilterApplication::Empty => return Ok(Vec::new()),
-                FilterApplication::Skipped(_) => return invalid_filter(Table::Responses, filter),
-            }
-        }
-
-        query
-            .select(DatabaseResponse::as_select())
-            .load::<DatabaseResponse>(&mut conn)
-            .map_err(ExpressionError::from)
+    pub fn execute_with(
+        &self,
+        backend: &impl BackendTrait,
+    ) -> Result<Vec<DatabaseResponse>, ExpressionError> {
+        backend.get_responses(self.filters())
     }
-}
-
-fn invalid_filter<T>(table: Table, filter: &Filter) -> Result<T, ExpressionError> {
-    warn!(?table, ?filter, "invalid filter for table");
-    Err(ExpressionError::InvalidFilter {
-        table,
-        filter: filter.clone(),
-    })
 }
