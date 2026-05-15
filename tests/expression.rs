@@ -3,7 +3,7 @@ use nexus::{
         get::get,
         ops::{Filter, NameField, Table},
     },
-    poll::source::yougov::YouGov,
+    poll::{response::demographic::Demographic, source::yougov::YouGov},
 };
 
 #[test]
@@ -29,7 +29,7 @@ pub fn test_get_names_expression() {
 pub fn test_get_polls_expression() {
     let expr = get()
         .polls()
-        .from_soure(YouGov)
+        .from_source(YouGov)
         .from("04-15-2025")
         .to("04-15-2026");
 
@@ -45,6 +45,39 @@ pub fn test_get_polls_expression() {
             },
             Filter::PollTo {
                 date: "04-15-2026".to_string()
+            },
+        ]
+    );
+}
+
+#[test]
+pub fn test_get_responses_expression() {
+    let expr = get()
+        .responses()
+        .from_source(YouGov)
+        .from("04-15-2025")
+        .to("04-15-2026")
+        .from_question("Do you approve?")
+        .from_demographic(Demographic::All);
+
+    assert_eq!(expr.table(), Some(Table::Responses));
+    assert_eq!(
+        expr.filters(),
+        &[
+            Filter::ResponseSource {
+                source_name: "YouGov"
+            },
+            Filter::ResponseFrom {
+                date: "04-15-2025".to_string()
+            },
+            Filter::ResponseTo {
+                date: "04-15-2026".to_string()
+            },
+            Filter::ResponseQuestion {
+                question: "Do you approve?".to_string()
+            },
+            Filter::ResponseDemographic {
+                demographic_key: "all".to_string()
             },
         ]
     );

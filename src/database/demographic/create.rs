@@ -81,6 +81,10 @@ fn demographic_record(demographic: &Demographic) -> DemographicRecord {
     }
 }
 
+pub fn demographic_key(demographic: &Demographic) -> String {
+    demographic_record(demographic).key
+}
+
 fn labeled_record(demographic_type: &str, label: &str) -> DemographicRecord {
     DemographicRecord {
         key: format!("{demographic_type}:{label}"),

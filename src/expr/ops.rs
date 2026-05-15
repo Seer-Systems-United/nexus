@@ -9,10 +9,12 @@ pub enum Operation {
 pub enum Table {
     Polls,
     People,
+    Responses,
 }
 
 pub struct Polls;
 pub struct People;
+pub struct Responses;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum NameField {
@@ -26,6 +28,15 @@ pub enum Filter {
     PollSource { source_name: &'static str },
     PollFrom { date: String },
     PollTo { date: String },
+    ResponseSource { source_name: &'static str },
+    ResponseFrom { date: String },
+    ResponseTo { date: String },
+    ResponseQuestion { question: String },
+    ResponseDemographic { demographic_key: String },
+}
+
+pub trait SourceFilter {
+    const SOURCE_NAME: &'static str;
 }
 
 pub trait PollSourceFilter {
@@ -35,6 +46,7 @@ pub trait PollSourceFilter {
 pub enum SelectedTable {
     Polls(schema::polls::table),
     People(schema::people::table),
+    Responses(schema::responses::table),
 }
 
 impl TableTrait for Polls {
@@ -43,6 +55,14 @@ impl TableTrait for Polls {
 
 impl TableTrait for People {
     const TABLE: Table = Table::People;
+}
+
+impl TableTrait for Responses {
+    const TABLE: Table = Table::Responses;
+}
+
+impl SourceFilter for YouGov {
+    const SOURCE_NAME: &'static str = YouGov::SOURCE_NAME;
 }
 
 impl PollSourceFilter for YouGov {
@@ -54,6 +74,7 @@ impl Table {
         match self {
             Self::Polls => SelectedTable::Polls(schema::polls::table),
             Self::People => SelectedTable::People(schema::people::table),
+            Self::Responses => SelectedTable::Responses(schema::responses::table),
         }
     }
 }

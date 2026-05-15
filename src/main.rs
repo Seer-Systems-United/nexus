@@ -12,7 +12,14 @@ fn main() {
     // init_nlp();
     init_database();
 
-    match get().polls().execute() {
+    match get()
+        .responses()
+        .from_question("Trump")
+        .from_demographic(poll::response::demographic::Demographic::Sex {
+            sex: poll::response::demographic::sex::Sex::Female,
+        })
+        .execute()
+    {
         Ok(polls) => {
             dbg!(polls);
         }

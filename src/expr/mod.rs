@@ -1,18 +1,28 @@
 use std::{fmt, marker::PhantomData};
 
-use chrono::{NaiveDate, NaiveDateTime, NaiveTime};
-use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
+use diesel::{QueryDsl, RunQueryDsl, SelectableHelper};
 use tracing::{debug, trace, warn};
 
-use crate::database::{get_connection, person::DatabasePerson, poll::DatabasePoll};
+use crate::database::{
+    get_connection, person::DatabasePerson, poll::DatabasePoll, response::DatabaseResponse,
+};
 use crate::expr::{
-    get::GetOp,
-    ops::{Filter, Table},
-    ops::{NameField, People, Polls},
-    traits::OperationTrait,
+    get::{
+        GetOp,
+        names::where_as::WhereAsFilter,
+        polls::{from::PollFromFilter, from_source::FromSourceFilter, to::PollToFilter},
+        responses::{
+            from::ResponseFromFilter, from_demographic::FromDemographicFilter,
+            from_question::FromQuestionFilter, from_source::ResponseFromSourceFilter,
+            to::ResponseToFilter,
+        },
+    },
+    ops::{Filter, People, Polls, Responses, Table},
+    traits::{FilterApplication, FilterTrait, OperationTrait},
 };
 use crate::schema;
 
+mod common;
 pub mod get;
 pub mod ops;
 pub mod traits;
@@ -109,28 +119,10 @@ impl NexusExpression<GetOp, People, DatabasePerson> {
         let mut query = schema::people::table.into_boxed();
 
         for filter in self.filters() {
-            match filter {
-                Filter::Name {
-                    field: NameField::FirstName,
-                    value,
-                } => {
-                    trace!(value = %value, "filtering by given_name");
-                    query = query.filter(schema::people::given_name.eq(value.as_str()));
-                }
-                Filter::Name {
-                    field: NameField::Surname,
-                    value,
-                } => {
-                    trace!(value = %value, "filtering by surname");
-                    query = query.filter(schema::people::surname.eq(value.as_str()));
-                }
-                filter => {
-                    warn!(?filter, "invalid filter for People");
-                    return Err(ExpressionError::InvalidFilter {
-                        table: Table::People,
-                        filter: filter.clone(),
-                    });
-                }
+            match WhereAsFilter::apply_filter(query, filter, &mut conn)? {
+                FilterApplication::Applied(next_query) => query = next_query,
+                FilterApplication::Empty => return Ok(Vec::new()),
+                FilterApplication::Skipped(_) => return invalid_filter(Table::People, filter),
             }
         }
 
@@ -149,39 +141,14 @@ impl NexusExpression<GetOp, Polls, DatabasePoll> {
         let mut query = schema::polls::table.into_boxed();
 
         for filter in self.filters() {
-            match filter {
-                Filter::PollSource { source_name } => {
-                    trace!(source_name = %source_name, "filtering by poll source");
+            let application = FromSourceFilter::apply_filter(query, filter, &mut conn)?
+                .or_else(|query| PollFromFilter::apply_filter(query, filter, &mut conn))?
+                .or_else(|query| PollToFilter::apply_filter(query, filter, &mut conn))?;
 
-                    let source_ids = schema::sources::table
-                        .filter(schema::sources::name.eq(*source_name))
-                        .select(schema::sources::id)
-                        .load::<uuid::Uuid>(&mut conn)?;
-
-                    if source_ids.is_empty() {
-                        trace!(source_name = %source_name, "no matching sources found");
-                        return Ok(Vec::new());
-                    }
-
-                    query = query.filter(schema::polls::source_id.eq_any(source_ids));
-                }
-                Filter::PollFrom { date } => {
-                    trace!(date = %date, "filtering polls from date");
-                    query = query
-                        .filter(schema::polls::published_timestamp.ge(parse_date_start(date)?));
-                }
-                Filter::PollTo { date } => {
-                    trace!(date = %date, "filtering polls to date");
-                    query =
-                        query.filter(schema::polls::published_timestamp.le(parse_date_end(date)?));
-                }
-                filter => {
-                    warn!(?filter, "invalid filter for Polls");
-                    return Err(ExpressionError::InvalidFilter {
-                        table: Table::Polls,
-                        filter: filter.clone(),
-                    });
-                }
+            match application {
+                FilterApplication::Applied(next_query) => query = next_query,
+                FilterApplication::Empty => return Ok(Vec::new()),
+                FilterApplication::Skipped(_) => return invalid_filter(Table::Polls, filter),
             }
         }
 
@@ -192,22 +159,38 @@ impl NexusExpression<GetOp, Polls, DatabasePoll> {
     }
 }
 
-fn parse_date_start(value: &str) -> Result<NaiveDateTime, ExpressionError> {
-    trace!(value = %value, "parsing start date");
-    Ok(parse_date(value)?.and_time(NaiveTime::MIN))
+impl NexusExpression<GetOp, Responses, DatabaseResponse> {
+    pub fn execute(&self) -> Result<Vec<DatabaseResponse>, ExpressionError> {
+        debug!(filters = ?self.filters(), "executing Get(Responses) query");
+
+        let mut conn = get_connection();
+        let mut query = schema::responses::table.into_boxed();
+
+        for filter in self.filters() {
+            let application = ResponseFromSourceFilter::apply_filter(query, filter, &mut conn)?
+                .or_else(|query| ResponseFromFilter::apply_filter(query, filter, &mut conn))?
+                .or_else(|query| ResponseToFilter::apply_filter(query, filter, &mut conn))?
+                .or_else(|query| FromQuestionFilter::apply_filter(query, filter, &mut conn))?
+                .or_else(|query| FromDemographicFilter::apply_filter(query, filter, &mut conn))?;
+
+            match application {
+                FilterApplication::Applied(next_query) => query = next_query,
+                FilterApplication::Empty => return Ok(Vec::new()),
+                FilterApplication::Skipped(_) => return invalid_filter(Table::Responses, filter),
+            }
+        }
+
+        query
+            .select(DatabaseResponse::as_select())
+            .load::<DatabaseResponse>(&mut conn)
+            .map_err(ExpressionError::from)
+    }
 }
 
-fn parse_date_end(value: &str) -> Result<NaiveDateTime, ExpressionError> {
-    trace!(value = %value, "parsing end date");
-    Ok(parse_date(value)?
-        .and_time(NaiveTime::from_hms_opt(23, 59, 59).expect("23:59:59 is a valid time")))
-}
-
-fn parse_date(value: &str) -> Result<NaiveDate, ExpressionError> {
-    trace!(value = %value, "parsing date");
-    NaiveDate::parse_from_str(value, "%m-%d-%Y")
-        .or_else(|_| NaiveDate::parse_from_str(value, "%Y-%m-%d"))
-        .map_err(|_| ExpressionError::InvalidDate {
-            value: value.to_string(),
-        })
+fn invalid_filter<T>(table: Table, filter: &Filter) -> Result<T, ExpressionError> {
+    warn!(?table, ?filter, "invalid filter for table");
+    Err(ExpressionError::InvalidFilter {
+        table,
+        filter: filter.clone(),
+    })
 }
