@@ -18,10 +18,6 @@ impl NexusExpression<GetOp, Polls, DatabasePoll> {
         })
     }
 
-    pub fn from_soure<S: PollSourceFilter>(self, source: S) -> Self {
-        self.from_source(source)
-    }
-
     pub fn from(self, date: impl Into<String>) -> Self {
         self.push_filter(Filter::PollFrom { date: date.into() })
     }
