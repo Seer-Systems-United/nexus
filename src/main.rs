@@ -1,18 +1,12 @@
-pub mod database;
-pub mod expr;
-pub mod nlp;
-pub mod poll;
-pub mod utils;
-
-use crate::{database::default_backend, expr::get::get, utils::logging::init_tracing};
+use nexus::{Nexus, expr::get::get, poll, utils::logging::init_tracing};
 
 fn main() {
     init_tracing();
 
-    let backend = match default_backend() {
-        Ok(backend) => backend,
+    let nexus = match Nexus::new() {
+        Ok(nexus) => nexus,
         Err(error) => {
-            eprintln!("failed to initialize backend: {error}");
+            eprintln!("failed to initialize nexus: {error}");
             std::process::exit(1);
         }
     };
@@ -23,7 +17,7 @@ fn main() {
         .from_demographic(poll::response::demographic::Demographic::Sex {
             sex: poll::response::demographic::sex::Sex::Female,
         })
-        .execute_with(&backend)
+        .execute_with(nexus.backend())
     {
         Ok(responses) => {
             dbg!(responses);

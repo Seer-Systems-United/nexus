@@ -3,6 +3,7 @@ mod people;
 mod polls;
 mod responses;
 mod rows;
+mod save;
 mod schema;
 mod source;
 
@@ -35,6 +36,14 @@ impl BackendTrait for PostgresBackend {
 
     fn get_responses(&self, filters: &[Filter]) -> Result<Vec<DatabaseResponse>, ExpressionError> {
         responses::get_responses(filters)
+    }
+
+    fn save_poll(
+        &self,
+        source_name: &str,
+        poll: &crate::poll::Poll,
+    ) -> Result<(), ExpressionError> {
+        save::save_poll(source_name, poll)
     }
 
     fn poll_exists_by_timestamp(&self, timestamp: DateTime<Utc>) -> Result<bool, ExpressionError> {

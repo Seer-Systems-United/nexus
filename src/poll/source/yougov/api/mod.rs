@@ -79,8 +79,9 @@ pub fn has_new_poll() -> bool {
 
     match default_backend().and_then(|backend| backend.poll_exists_by_timestamp(latest)) {
         Ok(exists) => {
-            info!(exists, "poll existence check complete");
-            exists
+            let has_new_poll = !exists;
+            info!(exists, has_new_poll, "poll existence check complete");
+            has_new_poll
         }
         Err(error) => {
             warn!(%error, "failed to check poll existence");

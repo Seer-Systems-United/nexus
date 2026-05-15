@@ -1,8 +1,17 @@
-use chrono::NaiveDate;
+use std::sync::Arc;
+
+use chrono::{NaiveDate, TimeZone, Utc};
 use nexus::{
-    database::{poll::DatabasePoll, response::DatabaseResponse, sqlite::SqliteBackend},
+    database::{
+        BackendTrait, poll::DatabasePoll, response::DatabaseResponse, sqlite::SqliteBackend,
+    },
     expr::get::get,
-    poll::{response::demographic::Demographic, source::yougov::YouGov},
+    poll::{
+        Poll,
+        question::Question,
+        response::{Response, demographic::Demographic, unit::Unit},
+        source::yougov::YouGov,
+    },
 };
 
 #[test]
@@ -54,4 +63,36 @@ pub fn test_sqlite_store_executes_local_responses_expression() {
         .unwrap();
 
     assert_eq!(results, vec![response]);
+}
+
+#[test]
+pub fn test_sqlite_store_saves_poll_graph_idempotently() {
+    let store = SqliteBackend::in_memory().unwrap();
+    let poll = Poll {
+        published_timestamp: Utc.with_ymd_and_hms(2026, 4, 1, 12, 0, 0).unwrap(),
+        questions: vec![Question::new(
+            "Do you approve?",
+            vec![Response {
+                demographic: Demographic::All,
+                answer: Arc::from("Approve"),
+                value: 52,
+                unit: Unit::Percent,
+            }],
+        )],
+    };
+
+    store.save_poll("YouGov", &poll).unwrap();
+    store.save_poll("YouGov", &poll).unwrap();
+
+    let results = get()
+        .responses()
+        .from_source(YouGov)
+        .from_question("approve")
+        .from_demographic(Demographic::All)
+        .execute_with(&store)
+        .unwrap();
+
+    assert_eq!(results.len(), 1);
+    assert_eq!(results[0].answer, "Approve");
+    assert_eq!(results[0].value, 52);
 }

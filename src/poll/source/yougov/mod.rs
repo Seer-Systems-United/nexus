@@ -17,8 +17,6 @@ impl PollSource for YouGov {
     }
 
     fn get_latest_poll() -> Poll {
-        if !has_new_poll() {}
-
         let (questions, published_timestamp) = api::latest_survey_with_timestamp();
 
         Poll {
