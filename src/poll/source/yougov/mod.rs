@@ -5,7 +5,7 @@ use crate::poll::{
     source::{traits::PollSource, yougov::api::has_new_poll},
 };
 
-pub struct YouGov {}
+pub struct YouGov;
 
 impl YouGov {
     pub const SOURCE_NAME: &'static str = "YouGov";
@@ -17,6 +17,8 @@ impl PollSource for YouGov {
     }
 
     fn get_latest_poll() -> Poll {
+        if !has_new_poll() {}
+
         let (questions, published_timestamp) = api::latest_survey_with_timestamp();
 
         Poll {
