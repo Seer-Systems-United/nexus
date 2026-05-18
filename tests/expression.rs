@@ -51,6 +51,35 @@ pub fn test_get_polls_expression() {
 }
 
 #[test]
+pub fn test_get_questions_expression() {
+    let expr = get()
+        .questions()
+        .from_source(YouGov)
+        .from("04-15-2025")
+        .to("04-15-2026")
+        .from_question("Do you approve?");
+
+    assert_eq!(expr.table(), Some(Table::Questions));
+    assert_eq!(
+        expr.filters(),
+        &[
+            Filter::QuestionSource {
+                source_name: "YouGov"
+            },
+            Filter::QuestionFrom {
+                date: "04-15-2025".to_string()
+            },
+            Filter::QuestionTo {
+                date: "04-15-2026".to_string()
+            },
+            Filter::QuestionQuestion {
+                question: "Do you approve?".to_string()
+            },
+        ]
+    );
+}
+
+#[test]
 pub fn test_get_responses_expression() {
     let expr = get()
         .responses()

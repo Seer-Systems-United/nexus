@@ -4,7 +4,8 @@ use diesel::{Connection, SqliteConnection};
 
 use crate::{
     database::{
-        BackendTrait, person::DatabasePerson, poll::DatabasePoll, response::DatabaseResponse,
+        BackendTrait, person::DatabasePerson, poll::DatabasePoll, question::DatabaseQuestion,
+        response::DatabaseResponse,
     },
     expr::{ExpressionError, ops::Filter},
 };
@@ -12,6 +13,7 @@ use crate::{
 mod insert;
 mod people;
 mod polls;
+mod questions;
 mod responses;
 mod rows;
 mod save;
@@ -104,6 +106,10 @@ impl BackendTrait for SqliteBackend {
 
     fn get_polls(&self, filters: &[Filter]) -> Result<Vec<DatabasePoll>, ExpressionError> {
         polls::get_polls(&mut self.conn.borrow_mut(), filters)
+    }
+
+    fn get_questions(&self, filters: &[Filter]) -> Result<Vec<DatabaseQuestion>, ExpressionError> {
+        questions::get_questions(&mut self.conn.borrow_mut(), filters)
     }
 
     fn get_responses(&self, filters: &[Filter]) -> Result<Vec<DatabaseResponse>, ExpressionError> {

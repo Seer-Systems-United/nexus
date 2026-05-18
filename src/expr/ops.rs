@@ -8,11 +8,13 @@ pub enum Operation {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Table {
     Polls,
+    Questions,
     People,
     Responses,
 }
 
 pub struct Polls;
+pub struct Questions;
 pub struct People;
 pub struct Responses;
 
@@ -28,6 +30,10 @@ pub enum Filter {
     PollSource { source_name: &'static str },
     PollFrom { date: String },
     PollTo { date: String },
+    QuestionSource { source_name: &'static str },
+    QuestionFrom { date: String },
+    QuestionTo { date: String },
+    QuestionQuestion { question: String },
     ResponseSource { source_name: &'static str },
     ResponseFrom { date: String },
     ResponseTo { date: String },
@@ -45,6 +51,10 @@ pub trait PollSourceFilter {
 
 impl TableTrait for Polls {
     const TABLE: Table = Table::Polls;
+}
+
+impl TableTrait for Questions {
+    const TABLE: Table = Table::Questions;
 }
 
 impl TableTrait for People {

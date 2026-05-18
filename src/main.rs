@@ -12,11 +12,8 @@ fn main() {
     };
 
     match get()
-        .responses()
+        .questions()
         .from_question("Trump")
-        .from_demographic(poll::response::demographic::Demographic::Sex {
-            sex: poll::response::demographic::sex::Sex::Female,
-        })
         .execute_with(nexus.backend())
     {
         Ok(responses) => {

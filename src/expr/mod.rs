@@ -3,11 +3,12 @@ use std::{fmt, marker::PhantomData};
 use tracing::trace;
 
 use crate::database::{
-    BackendTrait, person::DatabasePerson, poll::DatabasePoll, response::DatabaseResponse,
+    BackendTrait, person::DatabasePerson, poll::DatabasePoll, question::DatabaseQuestion,
+    response::DatabaseResponse,
 };
 use crate::expr::{
     get::GetOp,
-    ops::{Filter, People, Polls, Responses, Table},
+    ops::{Filter, People, Polls, Questions, Responses, Table},
     traits::OperationTrait,
 };
 
@@ -131,6 +132,15 @@ impl NexusExpression<GetOp, Polls, DatabasePoll> {
         backend: &impl BackendTrait,
     ) -> Result<Vec<DatabasePoll>, ExpressionError> {
         backend.get_polls(self.filters())
+    }
+}
+
+impl NexusExpression<GetOp, Questions, DatabaseQuestion> {
+    pub fn execute_with(
+        &self,
+        backend: &impl BackendTrait,
+    ) -> Result<Vec<DatabaseQuestion>, ExpressionError> {
+        backend.get_questions(self.filters())
     }
 }
 

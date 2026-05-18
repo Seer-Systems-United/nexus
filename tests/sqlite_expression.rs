@@ -3,7 +3,8 @@ use std::sync::Arc;
 use chrono::{NaiveDate, TimeZone, Utc};
 use nexus::{
     database::{
-        BackendTrait, poll::DatabasePoll, response::DatabaseResponse, sqlite::SqliteBackend,
+        BackendTrait, poll::DatabasePoll, question::DatabaseQuestion, response::DatabaseResponse,
+        sqlite::SqliteBackend,
     },
     expr::get::get,
     poll::{
@@ -63,6 +64,49 @@ pub fn test_sqlite_store_executes_local_responses_expression() {
         .unwrap();
 
     assert_eq!(results, vec![response]);
+}
+
+#[test]
+pub fn test_sqlite_store_executes_local_questions_expression() {
+    let store = SqliteBackend::in_memory().unwrap();
+
+    let source_id = uuid::Uuid::new_v4();
+    let poll_id = uuid::Uuid::new_v4();
+    let question_id = uuid::Uuid::new_v4();
+
+    store.insert_source(source_id, "YouGov").unwrap();
+    store
+        .insert_poll(&DatabasePoll {
+            id: poll_id,
+            source_id,
+            published_timestamp: NaiveDate::from_ymd_opt(2026, 4, 1)
+                .unwrap()
+                .and_hms_opt(12, 0, 0)
+                .unwrap(),
+        })
+        .unwrap();
+    store
+        .insert_question(question_id, poll_id, "Do you approve?")
+        .unwrap();
+
+    let results = get()
+        .questions()
+        .from_source(YouGov)
+        .from("04-15-2025")
+        .to("04-15-2026")
+        .from_question("approve")
+        .execute_with(&store)
+        .unwrap();
+
+    assert_eq!(
+        results,
+        vec![DatabaseQuestion {
+            id: question_id,
+            poll_id,
+            text: "Do you approve?".to_string(),
+            keywords: "Do you approve?".to_string(),
+        }]
+    );
 }
 
 #[test]

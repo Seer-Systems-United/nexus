@@ -1,6 +1,7 @@
 mod connection;
 mod people;
 mod polls;
+mod questions;
 mod responses;
 mod rows;
 mod save;
@@ -11,7 +12,8 @@ use chrono::{DateTime, Utc};
 
 use crate::{
     database::{
-        BackendTrait, person::DatabasePerson, poll::DatabasePoll, response::DatabaseResponse,
+        BackendTrait, person::DatabasePerson, poll::DatabasePoll, question::DatabaseQuestion,
+        response::DatabaseResponse,
     },
     expr::{ExpressionError, ops::Filter},
 };
@@ -32,6 +34,10 @@ impl BackendTrait for PostgresBackend {
 
     fn get_polls(&self, filters: &[Filter]) -> Result<Vec<DatabasePoll>, ExpressionError> {
         polls::get_polls(filters)
+    }
+
+    fn get_questions(&self, filters: &[Filter]) -> Result<Vec<DatabaseQuestion>, ExpressionError> {
+        questions::get_questions(filters)
     }
 
     fn get_responses(&self, filters: &[Filter]) -> Result<Vec<DatabaseResponse>, ExpressionError> {

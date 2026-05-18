@@ -1,7 +1,10 @@
 use diesel::{Queryable, prelude::Insertable};
 
 use crate::{
-    database::{person::DatabasePerson, poll::DatabasePoll, response::DatabaseResponse},
+    database::{
+        person::DatabasePerson, poll::DatabasePoll, question::DatabaseQuestion,
+        response::DatabaseResponse,
+    },
     expr::ExpressionError,
 };
 
@@ -46,7 +49,7 @@ pub(super) struct SqliteSource {
     pub(super) name: String,
 }
 
-#[derive(Insertable)]
+#[derive(Queryable, Insertable)]
 #[diesel(table_name = schema::questions)]
 pub(super) struct SqliteQuestion {
     pub(super) id: String,
@@ -118,6 +121,30 @@ impl From<&DatabasePoll> for SqlitePoll {
             id: poll.id.to_string(),
             source_id: poll.source_id.to_string(),
             published_timestamp: format_datetime(poll.published_timestamp),
+        }
+    }
+}
+
+impl TryFrom<SqliteQuestion> for DatabaseQuestion {
+    type Error = ExpressionError;
+
+    fn try_from(row: SqliteQuestion) -> Result<Self, Self::Error> {
+        Ok(Self {
+            id: parse_uuid(row.id)?,
+            poll_id: parse_uuid(row.poll_id)?,
+            text: row.text,
+            keywords: row.keywords,
+        })
+    }
+}
+
+impl From<&DatabaseQuestion> for SqliteQuestion {
+    fn from(question: &DatabaseQuestion) -> Self {
+        Self {
+            id: question.id.to_string(),
+            poll_id: question.poll_id.to_string(),
+            text: question.text.clone(),
+            keywords: question.keywords.clone(),
         }
     }
 }
