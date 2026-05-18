@@ -110,6 +110,15 @@ pub fn test_sqlite_store_executes_local_questions_expression() {
             keywords: "Do you approve?".to_string(),
         }]
     );
+
+    let stemmed_results = get()
+        .questions()
+        .from_source_id(source_id)
+        .from_question("approval")
+        .execute_with(&store)
+        .unwrap();
+
+    assert_eq!(stemmed_results, results);
 }
 
 #[test]

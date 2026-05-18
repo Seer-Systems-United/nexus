@@ -1,7 +1,4 @@
-use diesel::{
-    BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl, SqliteConnection,
-    TextExpressionMethods,
-};
+use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SqliteConnection};
 use tracing::{debug, instrument, trace};
 
 use crate::{
@@ -20,6 +17,7 @@ use crate::{
 
 use super::{
     polls::{poll_ids_for_source_ids, poll_ids_from_date, poll_ids_to_date},
+    question_search::question_ids_for_search,
     rows::SqliteQuestion,
     schema,
     source::source_ids_by_name,
@@ -83,14 +81,12 @@ pub(super) fn get_questions(
             }
             Filter::QuestionQuestion { question } => {
                 debug!(?question, "Filtering by QuestionQuestion");
-                let pattern = format!("%{question}%");
-                trace!(?pattern, "LIKE pattern for question");
-                query = query.filter(
-                    schema::questions::text
-                        .eq(question)
-                        .or(schema::questions::text.like(pattern.clone()))
-                        .or(schema::questions::keywords.like(pattern)),
-                );
+                let question_ids = question_ids_for_search(conn, question)?;
+                if question_ids.is_empty() {
+                    debug!("No question IDs found for full-text search");
+                    return Ok(Vec::new());
+                }
+                query = query.filter(schema::questions::id.eq_any(question_ids));
             }
             filter => {
                 debug!(?filter, "Invalid filter for Questions");

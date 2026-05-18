@@ -7,6 +7,7 @@ use crate::{
 };
 
 use super::{
+    question_search::upsert_question_fts,
     rows::{
         SqliteDemographic, SqlitePerson, SqlitePoll, SqliteQuestion, SqliteResponse,
         SqliteResponseUnit, SqliteSource,
@@ -88,6 +89,7 @@ pub(super) fn insert_question(
     diesel::insert_into(schema::questions::table)
         .values(&row)
         .execute(conn)?;
+    upsert_question_fts(conn, &row.id, &row.text, &row.keywords)?;
     Ok(())
 }
 

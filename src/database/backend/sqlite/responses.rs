@@ -1,7 +1,4 @@
-use diesel::{
-    BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl, SqliteConnection,
-    TextExpressionMethods,
-};
+use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SqliteConnection};
 use tracing::{debug, instrument, trace};
 
 use crate::{
@@ -20,6 +17,7 @@ use crate::{
 
 use super::{
     polls::{poll_ids_for_source_ids, poll_ids_from_date, poll_ids_to_date},
+    question_search::question_ids_for_search,
     rows::SqliteResponse,
     schema,
     source::source_ids_by_name,
@@ -126,27 +124,6 @@ fn question_ids_for_poll_ids(
         .load::<String>(conn)
         .map_err(ExpressionError::from)?;
     debug!(count = ids.len(), "Loaded question IDs for poll IDs");
-    Ok(ids)
-}
-
-#[instrument(skip(conn, question))]
-fn question_ids_for_search(
-    conn: &mut SqliteConnection,
-    question: &str,
-) -> Result<Vec<String>, ExpressionError> {
-    let pattern = format!("%{question}%");
-
-    let ids = schema::questions::table
-        .filter(
-            schema::questions::text
-                .eq(question)
-                .or(schema::questions::text.like(pattern.clone()))
-                .or(schema::questions::keywords.like(pattern)),
-        )
-        .select(schema::questions::id)
-        .load::<String>(conn)
-        .map_err(ExpressionError::from)?;
-    debug!(count = ids.len(), "Loaded question IDs for search");
     Ok(ids)
 }
 

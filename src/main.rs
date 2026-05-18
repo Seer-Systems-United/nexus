@@ -13,7 +13,7 @@ fn main() {
 
     match get()
         .questions()
-        .from_question("Trump")
+        .from_question("Trump Approval")
         .execute_with(nexus.backend())
     {
         Ok(responses) => {

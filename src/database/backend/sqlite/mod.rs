@@ -14,6 +14,7 @@ use crate::{
 mod insert;
 mod people;
 mod polls;
+mod question_search;
 mod questions;
 mod responses;
 mod rows;

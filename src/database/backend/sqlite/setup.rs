@@ -37,6 +37,13 @@ pub(super) fn setup_schema(conn: &mut SqliteConnection) -> Result<(), Expression
             UNIQUE (poll_id, text)
         );
 
+        CREATE VIRTUAL TABLE IF NOT EXISTS questions_fts USING fts5(
+            id UNINDEXED,
+            text,
+            keywords,
+            tokenize = 'porter unicode61'
+        );
+
         CREATE TABLE IF NOT EXISTS response_units (
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL UNIQUE
@@ -64,6 +71,11 @@ pub(super) fn setup_schema(conn: &mut SqliteConnection) -> Result<(), Expression
 
         CREATE INDEX IF NOT EXISTS responses_question_id_idx ON responses (question_id);
         CREATE INDEX IF NOT EXISTS questions_poll_id_idx ON questions (poll_id);
+
+        INSERT INTO questions_fts(rowid, id, text, keywords)
+        SELECT rowid, id, text, keywords
+        FROM questions
+        WHERE rowid NOT IN (SELECT rowid FROM questions_fts);
         ",
     )?;
 

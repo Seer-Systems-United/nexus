@@ -7,7 +7,7 @@ use crate::{
     poll::{Poll, response::Response},
 };
 
-use super::{schema, util::format_datetime};
+use super::{question_search::upsert_question_fts, schema, util::format_datetime};
 
 #[instrument(skip(conn, poll), fields(source_name = %source_name))]
 pub(super) fn save_poll(
@@ -106,12 +106,16 @@ fn question_id(
         .do_nothing()
         .execute(conn)?;
 
-    schema::questions::table
+    let question_id = schema::questions::table
         .filter(schema::questions::poll_id.eq(poll_id))
         .filter(schema::questions::text.eq(text))
         .select(schema::questions::id)
         .first::<String>(conn)
-        .map_err(ExpressionError::from)
+        .map_err(ExpressionError::from)?;
+
+    upsert_question_fts(conn, &question_id, text, text)?;
+
+    Ok(question_id)
 }
 
 #[instrument(skip(conn, response))]
