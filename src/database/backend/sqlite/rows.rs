@@ -1,4 +1,5 @@
 use diesel::{Queryable, prelude::Insertable};
+use tracing::trace;
 
 use crate::{
     database::{
@@ -13,7 +14,7 @@ use super::{
     util::{format_datetime, parse_datetime, parse_uuid},
 };
 
-#[derive(Queryable, Insertable)]
+#[derive(Debug, Queryable, Insertable)]
 #[diesel(table_name = schema::people)]
 pub(super) struct SqlitePerson {
     pub(super) id: String,
@@ -23,7 +24,7 @@ pub(super) struct SqlitePerson {
     pub(super) prefix: Option<String>,
 }
 
-#[derive(Queryable, Insertable)]
+#[derive(Debug, Queryable, Insertable)]
 #[diesel(table_name = schema::polls)]
 pub(super) struct SqlitePoll {
     pub(super) id: String,
@@ -31,7 +32,7 @@ pub(super) struct SqlitePoll {
     pub(super) published_timestamp: String,
 }
 
-#[derive(Queryable, Insertable)]
+#[derive(Debug, Queryable, Insertable)]
 #[diesel(table_name = schema::responses)]
 pub(super) struct SqliteResponse {
     pub(super) id: String,
@@ -42,14 +43,14 @@ pub(super) struct SqliteResponse {
     pub(super) value: i32,
 }
 
-#[derive(Insertable)]
+#[derive(Debug, Insertable)]
 #[diesel(table_name = schema::sources)]
 pub(super) struct SqliteSource {
     pub(super) id: String,
     pub(super) name: String,
 }
 
-#[derive(Queryable, Insertable)]
+#[derive(Debug, Queryable, Insertable)]
 #[diesel(table_name = schema::questions)]
 pub(super) struct SqliteQuestion {
     pub(super) id: String,
@@ -58,7 +59,7 @@ pub(super) struct SqliteQuestion {
     pub(super) poll_id: String,
 }
 
-#[derive(Insertable)]
+#[derive(Debug, Insertable)]
 #[diesel(table_name = schema::demographics)]
 pub(super) struct SqliteDemographic {
     pub(super) id: String,
@@ -70,7 +71,7 @@ pub(super) struct SqliteDemographic {
     pub(super) registered: Option<bool>,
 }
 
-#[derive(Insertable)]
+#[derive(Debug, Insertable)]
 #[diesel(table_name = schema::response_units)]
 pub(super) struct SqliteResponseUnit {
     pub(super) id: String,
@@ -81,6 +82,7 @@ impl TryFrom<SqlitePerson> for DatabasePerson {
     type Error = ExpressionError;
 
     fn try_from(row: SqlitePerson) -> Result<Self, Self::Error> {
+        trace!("Converting SqlitePerson to DatabasePerson: {:?}", row);
         Ok(Self {
             id: parse_uuid(row.id)?,
             given_name: row.given_name,
@@ -93,6 +95,7 @@ impl TryFrom<SqlitePerson> for DatabasePerson {
 
 impl From<&DatabasePerson> for SqlitePerson {
     fn from(person: &DatabasePerson) -> Self {
+        trace!("Converting DatabasePerson to SqlitePerson: {:?}", person);
         Self {
             id: person.id.to_string(),
             given_name: person.given_name.clone(),
@@ -107,6 +110,7 @@ impl TryFrom<SqlitePoll> for DatabasePoll {
     type Error = ExpressionError;
 
     fn try_from(row: SqlitePoll) -> Result<Self, Self::Error> {
+        trace!("Converting SqlitePoll to DatabasePoll: {:?}", row);
         Ok(Self {
             id: parse_uuid(row.id)?,
             source_id: parse_uuid(row.source_id)?,
@@ -117,6 +121,7 @@ impl TryFrom<SqlitePoll> for DatabasePoll {
 
 impl From<&DatabasePoll> for SqlitePoll {
     fn from(poll: &DatabasePoll) -> Self {
+        trace!("Converting DatabasePoll to SqlitePoll: {:?}", poll);
         Self {
             id: poll.id.to_string(),
             source_id: poll.source_id.to_string(),
@@ -129,6 +134,7 @@ impl TryFrom<SqliteQuestion> for DatabaseQuestion {
     type Error = ExpressionError;
 
     fn try_from(row: SqliteQuestion) -> Result<Self, Self::Error> {
+        trace!("Converting SqliteQuestion to DatabaseQuestion: {:?}", row);
         Ok(Self {
             id: parse_uuid(row.id)?,
             poll_id: parse_uuid(row.poll_id)?,
@@ -140,6 +146,10 @@ impl TryFrom<SqliteQuestion> for DatabaseQuestion {
 
 impl From<&DatabaseQuestion> for SqliteQuestion {
     fn from(question: &DatabaseQuestion) -> Self {
+        trace!(
+            "Converting DatabaseQuestion to SqliteQuestion: {:?}",
+            question
+        );
         Self {
             id: question.id.to_string(),
             poll_id: question.poll_id.to_string(),
@@ -153,6 +163,7 @@ impl TryFrom<SqliteResponse> for DatabaseResponse {
     type Error = ExpressionError;
 
     fn try_from(row: SqliteResponse) -> Result<Self, Self::Error> {
+        trace!("Converting SqliteResponse to DatabaseResponse: {:?}", row);
         Ok(Self {
             id: parse_uuid(row.id)?,
             question_id: parse_uuid(row.question_id)?,
@@ -166,6 +177,10 @@ impl TryFrom<SqliteResponse> for DatabaseResponse {
 
 impl From<&DatabaseResponse> for SqliteResponse {
     fn from(response: &DatabaseResponse) -> Self {
+        trace!(
+            "Converting DatabaseResponse to SqliteResponse: {:?}",
+            response
+        );
         Self {
             id: response.id.to_string(),
             question_id: response.question_id.to_string(),

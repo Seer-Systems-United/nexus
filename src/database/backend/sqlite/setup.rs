@@ -1,8 +1,10 @@
 use diesel::{SqliteConnection, connection::SimpleConnection};
+use tracing::info;
 
 use crate::expr::ExpressionError;
 
 pub(super) fn setup_schema(conn: &mut SqliteConnection) -> Result<(), ExpressionError> {
+    info!("Setting up database schema");
     conn.batch_execute(
         "
         PRAGMA foreign_keys = ON;

@@ -31,13 +31,16 @@ pub enum Filter {
     PollFrom { date: String },
     PollTo { date: String },
     QuestionSource { source_name: &'static str },
+    QuestionSourceId { source_id: uuid::Uuid },
     QuestionFrom { date: String },
     QuestionTo { date: String },
     QuestionQuestion { question: String },
     ResponseSource { source_name: &'static str },
+    ResponseSourceId { source_id: uuid::Uuid },
     ResponseFrom { date: String },
     ResponseTo { date: String },
     ResponseQuestion { question: String },
+    ResponseQuestionId { question_id: uuid::Uuid },
     ResponseDemographic { demographic_key: String },
 }
 

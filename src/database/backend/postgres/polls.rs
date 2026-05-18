@@ -1,6 +1,6 @@
 use chrono::{DateTime, NaiveDateTime, Utc};
 use diesel::{ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl};
-use tracing::{debug, trace};
+use tracing::{debug, instrument, trace};
 
 use crate::{
     database::{
@@ -18,6 +18,7 @@ use crate::{
 
 use super::{connection::get_connection, rows::PollRow, schema, source::source_ids_by_name};
 
+#[instrument(skip(filters))]
 pub(super) fn get_polls(filters: &[Filter]) -> Result<Vec<DatabasePoll>, ExpressionError> {
     debug!(?filters, "executing Get(Polls) query");
 
@@ -56,7 +57,9 @@ pub(super) fn get_polls(filters: &[Filter]) -> Result<Vec<DatabasePoll>, Express
         .collect())
 }
 
+#[instrument]
 pub(super) fn poll_exists_by_timestamp(timestamp: DateTime<Utc>) -> Result<bool, ExpressionError> {
+    trace!(%timestamp, "checking if poll exists by timestamp");
     let mut conn = get_connection();
     let count = schema::polls::table
         .filter(schema::polls::published_timestamp.eq(timestamp.naive_utc()))
@@ -66,10 +69,12 @@ pub(super) fn poll_exists_by_timestamp(timestamp: DateTime<Utc>) -> Result<bool,
     Ok(count > 0)
 }
 
+#[instrument(skip(conn))]
 pub(super) fn poll_ids_for_source_ids(
     conn: &mut PgConnection,
     source_ids: Vec<uuid::Uuid>,
 ) -> Result<Vec<uuid::Uuid>, ExpressionError> {
+    trace!(?source_ids, "fetching poll ids for source ids");
     if source_ids.is_empty() {
         return Ok(Vec::new());
     }
@@ -81,10 +86,12 @@ pub(super) fn poll_ids_for_source_ids(
         .map_err(ExpressionError::from)
 }
 
+#[instrument(skip(conn))]
 pub(super) fn poll_ids_from_date(
     conn: &mut PgConnection,
     date: NaiveDateTime,
 ) -> Result<Vec<uuid::Uuid>, ExpressionError> {
+    trace!(%date, "fetching poll ids from date");
     schema::polls::table
         .filter(schema::polls::published_timestamp.ge(date))
         .select(schema::polls::id)
@@ -92,10 +99,12 @@ pub(super) fn poll_ids_from_date(
         .map_err(ExpressionError::from)
 }
 
+#[instrument(skip(conn))]
 pub(super) fn poll_ids_to_date(
     conn: &mut PgConnection,
     date: NaiveDateTime,
 ) -> Result<Vec<uuid::Uuid>, ExpressionError> {
+    trace!(%date, "fetching poll ids to date");
     schema::polls::table
         .filter(schema::polls::published_timestamp.le(date))
         .select(schema::polls::id)

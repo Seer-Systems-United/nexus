@@ -44,6 +44,17 @@ pub(super) fn get_responses(filters: &[Filter]) -> Result<Vec<DatabaseResponse>,
 
                 query = query.filter(schema::responses::question_id.eq_any(question_ids));
             }
+            Filter::ResponseSourceId { source_id } => {
+                trace!(source_id = %source_id, "filtering responses by poll source id");
+                let poll_ids = poll_ids_for_source_ids(&mut conn, vec![*source_id])?;
+                let question_ids = question_ids_for_poll_ids(&mut conn, poll_ids)?;
+
+                if question_ids.is_empty() {
+                    return Ok(Vec::new());
+                }
+
+                query = query.filter(schema::responses::question_id.eq_any(question_ids));
+            }
             Filter::ResponseFrom { date } => {
                 trace!(date = %date, "filtering responses from date");
                 let poll_ids = poll_ids_from_date(&mut conn, parse_date_start(date)?)?;
@@ -75,6 +86,10 @@ pub(super) fn get_responses(filters: &[Filter]) -> Result<Vec<DatabaseResponse>,
                 }
 
                 query = query.filter(schema::responses::question_id.eq_any(question_ids));
+            }
+            Filter::ResponseQuestionId { question_id } => {
+                trace!(question_id = %question_id, "filtering responses by question id");
+                query = query.filter(schema::responses::question_id.eq(question_id));
             }
             Filter::ResponseDemographic { demographic_key } => {
                 trace!(demographic_key = %demographic_key, "filtering responses by demographic");

@@ -1,5 +1,5 @@
 use diesel::{Connection, ExpressionMethods, QueryDsl, RunQueryDsl, SqliteConnection};
-use tracing::{debug, trace};
+use tracing::{debug, instrument, trace};
 
 use crate::{
     database::common::domain::{demographic_record, unit_name},
@@ -9,13 +9,13 @@ use crate::{
 
 use super::{schema, util::format_datetime};
 
+#[instrument(skip(conn, poll), fields(source_name = %source_name))]
 pub(super) fn save_poll(
     conn: &mut SqliteConnection,
     source_name: &str,
     poll: &Poll,
 ) -> Result<(), ExpressionError> {
     debug!(
-        source_name,
         questions_len = poll.questions.len(),
         published_timestamp = %poll.published_timestamp,
         "saving poll"
@@ -37,7 +37,9 @@ pub(super) fn save_poll(
     })
 }
 
+#[instrument(skip(conn))]
 fn source_id(conn: &mut SqliteConnection, source_name: &str) -> Result<String, ExpressionError> {
+    trace!("getting or creating source_id");
     let id = uuid::Uuid::new_v4().to_string();
 
     diesel::insert_into(schema::sources::table)
@@ -56,12 +58,14 @@ fn source_id(conn: &mut SqliteConnection, source_name: &str) -> Result<String, E
         .map_err(ExpressionError::from)
 }
 
+#[instrument(skip(conn, poll))]
 fn poll_id(
     conn: &mut SqliteConnection,
     source_id: &str,
     poll: &Poll,
 ) -> Result<String, ExpressionError> {
     let published_timestamp = format_datetime(poll.published_timestamp.naive_utc());
+    trace!(%published_timestamp, "getting or creating poll_id");
     let id = uuid::Uuid::new_v4().to_string();
 
     diesel::insert_into(schema::polls::table)
@@ -82,11 +86,13 @@ fn poll_id(
         .map_err(ExpressionError::from)
 }
 
+#[instrument(skip(conn))]
 fn question_id(
     conn: &mut SqliteConnection,
     poll_id: &str,
     text: &str,
 ) -> Result<String, ExpressionError> {
+    trace!("getting or creating question_id");
     let id = uuid::Uuid::new_v4().to_string();
 
     diesel::insert_into(schema::questions::table)
@@ -108,6 +114,7 @@ fn question_id(
         .map_err(ExpressionError::from)
 }
 
+#[instrument(skip(conn, response))]
 fn save_response(
     conn: &mut SqliteConnection,
     question_id: &str,
@@ -119,7 +126,7 @@ fn save_response(
     let answer = response.answer.as_ref();
     let value = i32::from(response.value);
 
-    trace!(question_id, answer, value, "saving response");
+    trace!(answer, value, "saving response");
 
     diesel::insert_into(schema::responses::table)
         .values((
@@ -143,11 +150,13 @@ fn save_response(
     Ok(())
 }
 
+#[instrument(skip(conn, demographic))]
 fn demographic_id(
     conn: &mut SqliteConnection,
     demographic: &crate::poll::response::demographic::Demographic,
 ) -> Result<String, ExpressionError> {
     let record = demographic_record(demographic);
+    trace!(key = %record.key, "getting or creating demographic_id");
     let id = uuid::Uuid::new_v4().to_string();
 
     diesel::insert_into(schema::demographics::table)
@@ -171,11 +180,13 @@ fn demographic_id(
         .map_err(ExpressionError::from)
 }
 
+#[instrument(skip(conn, unit))]
 fn unit_id(
     conn: &mut SqliteConnection,
     unit: &crate::poll::response::unit::Unit,
 ) -> Result<String, ExpressionError> {
     let name = unit_name(unit);
+    trace!(%name, "getting or creating unit_id");
     let id = uuid::Uuid::new_v4().to_string();
 
     diesel::insert_into(schema::response_units::table)

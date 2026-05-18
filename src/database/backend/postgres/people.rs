@@ -37,9 +37,8 @@ pub(super) fn get_people(filters: &[Filter]) -> Result<Vec<DatabasePerson>, Expr
         }
     }
 
-    Ok(query
-        .load::<PersonRow>(&mut conn)?
-        .into_iter()
-        .map(DatabasePerson::from)
-        .collect())
+    let results = query.load::<PersonRow>(&mut conn)?;
+    trace!(count = results.len(), "query returned results");
+
+    Ok(results.into_iter().map(DatabasePerson::from).collect())
 }

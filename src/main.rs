@@ -1,4 +1,4 @@
-use nexus::{Nexus, expr::get::get, poll, utils::logging::init_tracing};
+use nexus::{Nexus, expr::get::get, utils::logging::init_tracing};
 
 fn main() {
     init_tracing();

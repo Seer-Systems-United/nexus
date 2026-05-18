@@ -44,6 +44,16 @@ pub(super) fn get_questions(filters: &[Filter]) -> Result<Vec<DatabaseQuestion>,
 
                 query = query.filter(schema::questions::poll_id.eq_any(poll_ids));
             }
+            Filter::QuestionSourceId { source_id } => {
+                trace!(source_id = %source_id, "filtering questions by poll source id");
+                let poll_ids = poll_ids_for_source_ids(&mut conn, vec![*source_id])?;
+
+                if poll_ids.is_empty() {
+                    return Ok(Vec::new());
+                }
+
+                query = query.filter(schema::questions::poll_id.eq_any(poll_ids));
+            }
             Filter::QuestionFrom { date } => {
                 trace!(date = %date, "filtering questions from date");
                 let poll_ids = poll_ids_from_date(&mut conn, parse_date_start(date)?)?;

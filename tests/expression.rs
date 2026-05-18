@@ -52,9 +52,11 @@ pub fn test_get_polls_expression() {
 
 #[test]
 pub fn test_get_questions_expression() {
+    let source_id = uuid::Uuid::new_v4();
     let expr = get()
         .questions()
         .from_source(YouGov)
+        .from_source_id(source_id)
         .from("04-15-2025")
         .to("04-15-2026")
         .from_question("Do you approve?");
@@ -66,6 +68,7 @@ pub fn test_get_questions_expression() {
             Filter::QuestionSource {
                 source_name: "YouGov"
             },
+            Filter::QuestionSourceId { source_id },
             Filter::QuestionFrom {
                 date: "04-15-2025".to_string()
             },
@@ -81,12 +84,16 @@ pub fn test_get_questions_expression() {
 
 #[test]
 pub fn test_get_responses_expression() {
+    let source_id = uuid::Uuid::new_v4();
+    let question_id = uuid::Uuid::new_v4();
     let expr = get()
         .responses()
         .from_source(YouGov)
+        .from_source_id(source_id)
         .from("04-15-2025")
         .to("04-15-2026")
         .from_question("Do you approve?")
+        .from_question_id(question_id)
         .from_demographic(Demographic::All);
 
     assert_eq!(expr.table(), Some(Table::Responses));
@@ -96,6 +103,7 @@ pub fn test_get_responses_expression() {
             Filter::ResponseSource {
                 source_name: "YouGov"
             },
+            Filter::ResponseSourceId { source_id },
             Filter::ResponseFrom {
                 date: "04-15-2025".to_string()
             },
@@ -105,6 +113,7 @@ pub fn test_get_responses_expression() {
             Filter::ResponseQuestion {
                 question: "Do you approve?".to_string()
             },
+            Filter::ResponseQuestionId { question_id },
             Filter::ResponseDemographic {
                 demographic_key: "all".to_string()
             },

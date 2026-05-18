@@ -1,4 +1,5 @@
 use diesel::Queryable;
+use tracing::trace;
 
 use crate::database::{person::DatabasePerson, poll::DatabasePoll, response::DatabaseResponse};
 
@@ -30,6 +31,7 @@ pub(super) struct ResponseRow {
 
 impl From<PersonRow> for DatabasePerson {
     fn from(row: PersonRow) -> Self {
+        trace!(person_id = %row.id, "Converting PersonRow to DatabasePerson");
         Self {
             id: row.id,
             given_name: row.given_name,
@@ -42,6 +44,7 @@ impl From<PersonRow> for DatabasePerson {
 
 impl From<PollRow> for DatabasePoll {
     fn from(row: PollRow) -> Self {
+        trace!(poll_id = %row.id, "Converting PollRow to DatabasePoll");
         Self {
             id: row.id,
             source_id: row.source_id,
@@ -52,6 +55,7 @@ impl From<PollRow> for DatabasePoll {
 
 impl From<ResponseRow> for DatabaseResponse {
     fn from(row: ResponseRow) -> Self {
+        trace!(response_id = %row.id, "Converting ResponseRow to DatabaseResponse");
         Self {
             id: row.id,
             question_id: row.question_id,
