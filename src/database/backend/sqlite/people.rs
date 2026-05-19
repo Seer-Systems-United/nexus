@@ -21,6 +21,24 @@ pub(super) fn get_people(
 
     for filter in filters {
         match filter {
+            Filter::PersonId { person_id } => {
+                debug!(person_id = %person_id, "Applying filter");
+                query = query.filter(schema::people::id.eq(person_id.to_string()))
+            }
+            Filter::PersonIds { person_ids } => {
+                debug!(count = person_ids.len(), "Applying filter");
+                if person_ids.is_empty() {
+                    return Ok(Vec::new());
+                }
+                query = query.filter(
+                    schema::people::id.eq_any(
+                        person_ids
+                            .iter()
+                            .map(uuid::Uuid::to_string)
+                            .collect::<Vec<_>>(),
+                    ),
+                )
+            }
             Filter::Name {
                 field: NameField::FirstName,
                 value,

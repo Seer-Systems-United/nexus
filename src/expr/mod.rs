@@ -12,6 +12,7 @@ use crate::expr::{
     traits::OperationTrait,
 };
 
+pub mod extensions;
 pub mod get;
 pub mod ops;
 pub mod traits;

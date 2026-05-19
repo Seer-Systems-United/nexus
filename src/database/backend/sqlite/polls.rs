@@ -28,6 +28,24 @@ pub(super) fn get_polls(
 
     for filter in filters {
         match filter {
+            Filter::PollId { poll_id } => {
+                debug!(?poll_id, "Filtering polls by ID");
+                query = query.filter(schema::polls::id.eq(poll_id.to_string()));
+            }
+            Filter::PollIds { poll_ids } => {
+                debug!(count = poll_ids.len(), "Filtering polls by IDs");
+                if poll_ids.is_empty() {
+                    return Ok(Vec::new());
+                }
+                query = query.filter(
+                    schema::polls::id.eq_any(
+                        poll_ids
+                            .iter()
+                            .map(uuid::Uuid::to_string)
+                            .collect::<Vec<_>>(),
+                    ),
+                );
+            }
             Filter::PollSource { source_name } => {
                 debug!(?source_name, "Filtering polls by source name");
                 let source_ids = source_ids_by_name(conn, source_name)?;

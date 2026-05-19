@@ -32,6 +32,17 @@ pub(super) fn get_responses(filters: &[Filter]) -> Result<Vec<DatabaseResponse>,
 
     for filter in filters {
         match filter {
+            Filter::ResponseId { response_id } => {
+                trace!(response_id = %response_id, "filtering responses by id");
+                query = query.filter(schema::responses::id.eq(response_id));
+            }
+            Filter::ResponseIds { response_ids } => {
+                trace!(count = response_ids.len(), "filtering responses by ids");
+                if response_ids.is_empty() {
+                    return Ok(Vec::new());
+                }
+                query = query.filter(schema::responses::id.eq_any(response_ids));
+            }
             Filter::ResponseSource { source_name } => {
                 trace!(source_name = %source_name, "filtering responses by poll source");
                 let source_ids = source_ids_by_name(&mut conn, source_name)?;

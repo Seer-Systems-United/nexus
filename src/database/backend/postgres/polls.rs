@@ -27,6 +27,17 @@ pub(super) fn get_polls(filters: &[Filter]) -> Result<Vec<DatabasePoll>, Express
 
     for filter in filters {
         match filter {
+            Filter::PollId { poll_id } => {
+                trace!(poll_id = %poll_id, "filtering polls by id");
+                query = query.filter(schema::polls::id.eq(poll_id));
+            }
+            Filter::PollIds { poll_ids } => {
+                trace!(count = poll_ids.len(), "filtering polls by ids");
+                if poll_ids.is_empty() {
+                    return Ok(Vec::new());
+                }
+                query = query.filter(schema::polls::id.eq_any(poll_ids));
+            }
             Filter::PollSource { source_name } => {
                 trace!(source_name = %source_name, "filtering by poll source");
                 let source_ids = source_ids_by_name(&mut conn, source_name)?;

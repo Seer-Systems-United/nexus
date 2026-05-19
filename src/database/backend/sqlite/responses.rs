@@ -33,6 +33,25 @@ pub(super) fn get_responses(
     for filter in filters {
         debug!(?filter, "Applying filter");
         match filter {
+            Filter::ResponseId { response_id } => {
+                trace!(?response_id, "Filtering by response ID");
+                query = query.filter(schema::responses::id.eq(response_id.to_string()));
+            }
+            Filter::ResponseIds { response_ids } => {
+                trace!(count = response_ids.len(), "Filtering by response IDs");
+                if response_ids.is_empty() {
+                    debug!("No response IDs provided");
+                    return Ok(Vec::new());
+                }
+                query = query.filter(
+                    schema::responses::id.eq_any(
+                        response_ids
+                            .iter()
+                            .map(uuid::Uuid::to_string)
+                            .collect::<Vec<_>>(),
+                    ),
+                );
+            }
             Filter::ResponseSource { source_name } => {
                 trace!(?source_name, "Filtering by source name");
                 let source_ids = source_ids_by_name(conn, source_name)?;

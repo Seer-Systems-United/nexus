@@ -33,6 +33,25 @@ pub(super) fn get_questions(
 
     for filter in filters {
         match filter {
+            Filter::QuestionId { question_id } => {
+                debug!(?question_id, "Filtering by QuestionId");
+                query = query.filter(schema::questions::id.eq(question_id.to_string()));
+            }
+            Filter::QuestionIds { question_ids } => {
+                debug!(count = question_ids.len(), "Filtering by QuestionIds");
+                if question_ids.is_empty() {
+                    debug!("No question IDs provided, returning empty vector");
+                    return Ok(Vec::new());
+                }
+                query = query.filter(
+                    schema::questions::id.eq_any(
+                        question_ids
+                            .iter()
+                            .map(uuid::Uuid::to_string)
+                            .collect::<Vec<_>>(),
+                    ),
+                );
+            }
             Filter::QuestionSource { source_name } => {
                 debug!(?source_name, "Filtering by QuestionSource");
                 let source_ids = source_ids_by_name(conn, source_name)?;

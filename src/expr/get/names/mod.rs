@@ -1,3 +1,5 @@
+pub mod by_id;
+pub mod by_ids;
 pub mod where_as;
 
 use crate::database::person::DatabasePerson;

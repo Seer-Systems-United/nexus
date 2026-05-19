@@ -19,6 +19,17 @@ pub(super) fn get_people(filters: &[Filter]) -> Result<Vec<DatabasePerson>, Expr
 
     for filter in filters {
         match filter {
+            Filter::PersonId { person_id } => {
+                trace!(person_id = %person_id, "filtering by person id");
+                query = query.filter(schema::people::id.eq(person_id));
+            }
+            Filter::PersonIds { person_ids } => {
+                trace!(count = person_ids.len(), "filtering by person ids");
+                if person_ids.is_empty() {
+                    return Ok(Vec::new());
+                }
+                query = query.filter(schema::people::id.eq_any(person_ids));
+            }
             Filter::Name {
                 field: NameField::FirstName,
                 value,
