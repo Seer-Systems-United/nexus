@@ -29,12 +29,7 @@ impl DatabaseQuestionExt for Vec<DatabaseQuestion> {
     #[instrument(skip(self))]
     fn get_polls(&self) -> Vec<DatabasePoll> {
         info!("Fetching unique polls for {} questions", self.len());
-        let mut poll_ids: HashSet<uuid::Uuid> = HashSet::new();
-
-        // Build hashset
-        for question in self {
-            poll_ids.insert(question.poll_id);
-        }
+        let poll_ids: HashSet<uuid::Uuid> = self.iter().map(|question| question.poll_id).collect();
 
         // Get polls
         let backend = default_backend().unwrap_or_else(|err| {
@@ -54,6 +49,7 @@ impl DatabaseQuestionExt for Vec<DatabaseQuestion> {
         polls
     }
 
+    #[instrument(skip(self))]
     fn get_responses(&self) -> Vec<Vec<DatabaseResponse>> {
         info!("Fetching responses for {} questions", self.len());
         let mut responses: Vec<Vec<DatabaseResponse>> = Vec::new();

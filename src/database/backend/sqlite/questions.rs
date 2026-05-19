@@ -52,6 +52,25 @@ pub(super) fn get_questions(
                     ),
                 );
             }
+            Filter::QuestionPollId { poll_id } => {
+                debug!(?poll_id, "Filtering by QuestionPollId");
+                query = query.filter(schema::questions::poll_id.eq(poll_id.to_string()));
+            }
+            Filter::QuestionPollIds { poll_ids } => {
+                debug!(count = poll_ids.len(), "Filtering by QuestionPollIds");
+                if poll_ids.is_empty() {
+                    debug!("No poll IDs provided, returning empty vector");
+                    return Ok(Vec::new());
+                }
+                query = query.filter(
+                    schema::questions::poll_id.eq_any(
+                        poll_ids
+                            .iter()
+                            .map(uuid::Uuid::to_string)
+                            .collect::<Vec<_>>(),
+                    ),
+                );
+            }
             Filter::QuestionSource { source_name } => {
                 debug!(?source_name, "Filtering by QuestionSource");
                 let source_ids = source_ids_by_name(conn, source_name)?;

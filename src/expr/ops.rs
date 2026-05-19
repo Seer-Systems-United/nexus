@@ -36,6 +36,8 @@ pub enum Filter {
     PollTo { date: String },
     QuestionId { question_id: uuid::Uuid },
     QuestionIds { question_ids: Vec<uuid::Uuid> },
+    QuestionPollId { poll_id: uuid::Uuid },
+    QuestionPollIds { poll_ids: Vec<uuid::Uuid> },
     QuestionSource { source_name: &'static str },
     QuestionSourceId { source_id: uuid::Uuid },
     QuestionFrom { date: String },

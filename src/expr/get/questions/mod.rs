@@ -1,6 +1,8 @@
 pub mod by_id;
 pub mod by_ids;
 pub mod from;
+pub mod from_poll_id;
+pub mod from_poll_ids;
 pub mod from_question;
 pub mod from_source;
 pub mod from_source_id;

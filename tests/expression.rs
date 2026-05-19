@@ -74,11 +74,15 @@ pub fn test_get_polls_expression() {
 pub fn test_get_questions_expression() {
     let question_id = uuid::Uuid::new_v4();
     let question_ids = [uuid::Uuid::new_v4(), uuid::Uuid::new_v4()];
+    let poll_id = uuid::Uuid::new_v4();
+    let poll_ids = [uuid::Uuid::new_v4(), uuid::Uuid::new_v4()];
     let source_id = uuid::Uuid::new_v4();
     let expr = get()
         .questions()
         .by_id(question_id)
         .by_ids(question_ids)
+        .from_poll_id(poll_id)
+        .from_poll_ids(poll_ids)
         .from_source(YouGov)
         .from_source_id(source_id)
         .from("04-15-2025")
@@ -92,6 +96,10 @@ pub fn test_get_questions_expression() {
             Filter::QuestionId { question_id },
             Filter::QuestionIds {
                 question_ids: question_ids.into(),
+            },
+            Filter::QuestionPollId { poll_id },
+            Filter::QuestionPollIds {
+                poll_ids: poll_ids.into(),
             },
             Filter::QuestionSource {
                 source_name: "YouGov"

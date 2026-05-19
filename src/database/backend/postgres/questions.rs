@@ -44,6 +44,17 @@ pub(super) fn get_questions(filters: &[Filter]) -> Result<Vec<DatabaseQuestion>,
                 }
                 query = query.filter(schema::questions::id.eq_any(question_ids));
             }
+            Filter::QuestionPollId { poll_id } => {
+                trace!(poll_id = %poll_id, "filtering questions by poll id");
+                query = query.filter(schema::questions::poll_id.eq(poll_id));
+            }
+            Filter::QuestionPollIds { poll_ids } => {
+                trace!(count = poll_ids.len(), "filtering questions by poll ids");
+                if poll_ids.is_empty() {
+                    return Ok(Vec::new());
+                }
+                query = query.filter(schema::questions::poll_id.eq_any(poll_ids));
+            }
             Filter::QuestionSource { source_name } => {
                 trace!(source_name = %source_name, "filtering questions by poll source");
                 let source_ids = source_ids_by_name(&mut conn, source_name)?;
