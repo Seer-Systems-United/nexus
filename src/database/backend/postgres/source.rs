@@ -14,3 +14,18 @@ pub(super) fn source_ids_by_name(
         .load::<uuid::Uuid>(conn)
         .map_err(ExpressionError::from)
 }
+
+pub(super) fn source_names_by_ids(
+    conn: &mut PgConnection,
+    source_ids: &[uuid::Uuid],
+) -> Result<Vec<String>, ExpressionError> {
+    if source_ids.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    schema::sources::table
+        .filter(schema::sources::id.eq_any(source_ids))
+        .select(schema::sources::name)
+        .load::<String>(conn)
+        .map_err(ExpressionError::from)
+}

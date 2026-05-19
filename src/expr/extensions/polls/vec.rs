@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use crate::default_backend;
+use crate::{database::BackendTrait, default_backend};
 use crate::{
     database::{poll::DatabasePoll, question::DatabaseQuestion, response::DatabaseResponse},
     expr::{
@@ -11,6 +11,24 @@ use crate::{
 use tracing::{error, info, instrument};
 
 impl DatabasePollExt for Vec<DatabasePoll> {
+    #[instrument(skip(self))]
+    fn get_names(&self) -> Vec<String> {
+        info!("Fetching source names for {} polls", self.len());
+        let source_ids: HashSet<uuid::Uuid> = self.iter().map(|poll| poll.source_id).collect();
+
+        let backend = default_backend().unwrap_or_else(|err| {
+            error!(error = ?err, "Failed to retrieve default backend");
+            panic!("Failed to retrieve default backend: {:?}", err);
+        });
+
+        backend
+            .get_source_names_by_ids(source_ids.into_iter().collect())
+            .unwrap_or_else(|err| {
+                error!(error = ?err, "Failed to execute source name fetch");
+                panic!("Failed to execute source name fetch: {:?}", err);
+            })
+    }
+
     #[instrument(skip(self))]
     fn get_published_timestamps(&self) -> Vec<chrono::NaiveDateTime> {
         info!(

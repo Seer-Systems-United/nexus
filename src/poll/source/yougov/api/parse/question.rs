@@ -5,7 +5,7 @@ pub(super) fn build_question_text(question_lines: &[&str]) -> Option<String> {
         .iter()
         .copied()
         .map(str::trim)
-        .filter(|line| !line.is_empty())
+        .filter(|line| !line.is_empty() && !is_question_artifact_line(line))
         .collect();
 
     while question_lines
@@ -15,19 +15,30 @@ pub(super) fn build_question_text(question_lines: &[&str]) -> Option<String> {
         question_lines.pop();
     }
 
-    if question_lines.len() > 1
-        && is_question_title_line(question_lines[0])
-        && !question_lines[0].contains('?')
-    {
-        question_lines.remove(0);
+    let mut title_suffix = None;
+    let mut had_title = false;
+
+    question_lines.retain(|line| {
+        if !line.contains('?') && is_question_title_line(line) {
+            had_title = true;
+            title_suffix = title_suffix.or_else(|| question_title_suffix(line));
+            false
+        } else {
+            true
+        }
+    });
+
+    let mut question = clean_question_text(&question_lines.join(" "));
+
+    if is_incomplete_question_stem(&question) {
+        if let Some(suffix) = title_suffix {
+            question = format!("{} {}", question.trim_end_matches('.').trim_end(), suffix);
+        } else if !had_title {
+            return None;
+        }
     }
 
-    let question = clean_question_text(&question_lines.join(" "));
-
-    if question.is_empty()
-        || is_incomplete_question_stem(&question)
-        || is_non_question_text(&question)
-    {
+    if question.is_empty() || is_non_question_text(&question) {
         None
     } else {
         Some(question)
@@ -94,6 +105,8 @@ fn is_question_artifact_line(line: &str) -> bool {
             | "Education"
             | "Sex Race Age Education"
             | "Sex Race Age"
+            | "Gender Age Ideology"
+            | "Party ID Race White by Education"
             | "2024 Vote Reg Ideology"
             | "MAGA"
             | "Party"
@@ -103,7 +116,7 @@ fn is_question_artifact_line(line: &str) -> bool {
     )
 }
 
-fn is_question_title_line(line: &str) -> bool {
+pub(super) fn is_question_title_line(line: &str) -> bool {
     let mut chars = line.chars();
 
     let Some(first) = chars.next() else {
@@ -129,4 +142,17 @@ fn is_question_title_line(line: &str) -> bool {
 
 fn is_incomplete_question_stem(question: &str) -> bool {
     question.ends_with("...")
+}
+
+fn question_title_suffix(line: &str) -> Option<&str> {
+    let (_, suffix) = line
+        .split_once('\u{2014}')
+        .or_else(|| line.split_once(" - "))?;
+    let suffix = suffix.trim();
+
+    if suffix.is_empty() {
+        None
+    } else {
+        Some(suffix)
+    }
 }

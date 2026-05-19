@@ -1,10 +1,13 @@
 use nexus::poll::question::is_non_question_text;
+use nexus::poll::response::{
+    demographic::{
+        Demographic, education_level::EducationLevel, ideology::Ideology,
+        partisan_affiliation::PartisanAffiliation, sex::Sex,
+    },
+    unit::Unit,
+};
 use nexus::poll::source::yougov::api::parse::{parse_page, parse_pages};
 use nexus::poll::source::yougov::api::{models::SurveyApiResponse, models::SurveyResponseItem};
-use nexus::poll::{
-    response::{demographic::Demographic, unit::Unit},
-    response::{demographic::partisan_affiliation::PartisanAffiliation, demographic::sex::Sex},
-};
 
 #[test]
 fn parses_mixed_yougov_survey_response_items() {
@@ -250,6 +253,102 @@ Unweighted N (1,549)
             .iter()
             .any(|response| response.answer.as_ref().ends_with('%'))
     );
+}
+
+#[test]
+fn parses_cbs_crosstab_columns() {
+    let page = "\
+CBSAdults Newsin the U.S. Poll - May 13-15, 2026
+1. Trump Job Approval (2 Categories)
+Do you approve or disapprove of the way Donald Trump is handling his job as president?
+Gender Age Ideology
+Total Male Female Under 30 30-44 45-64 65+ Liberal Moderate Conservative
+Approve 37% 42% 32% 29% 31% 41% 45% 4% 26% 82%
+Disapprove 63% 58% 68% 71% 69% 59% 55% 96% 74% 18%
+Totals 100% 100% 100% 100% 100% 100% 100% 100% 100% 100%
+Weighted N (2,057) (991) (1,066) (414) (520) (680) (442) (556) (641) (641)
+Party ID Race White by Education
+Total Dem Ind Rep White Black Hispanic No Degree 4yr Degree+
+Approve 37% 3% 27% 85% 43% 13% 34% 46% 39%
+Disapprove 63% 97% 73% 15% 57% 87% 66% 54% 61%
+Totals 100% 100% 100% 100% 100% 100% 100% 100% 100%
+Weighted N (2,057) (601) (703) (614) (1,302) (253) (321) (809) (492)
+1
+";
+
+    let question = parse_page(page).unwrap();
+
+    assert_eq!(
+        question.text,
+        "Do you approve or disapprove of the way Donald Trump is handling his job as president?"
+    );
+    assert_eq!(question.responses.len(), 38);
+
+    assert!(
+        question
+            .responses
+            .iter()
+            .any(|response| response.answer.as_ref() == "Approve"
+                && response.value == 29
+                && matches!(
+                    response.demographic,
+                    Demographic::Age {
+                        lower_bound: 18,
+                        upper_bound: 29
+                    }
+                ))
+    );
+
+    assert!(
+        question
+            .responses
+            .iter()
+            .any(|response| response.answer.as_ref() == "Approve"
+                && response.value == 4
+                && matches!(
+                    response.demographic,
+                    Demographic::Ideology {
+                        ideology: Ideology::Liberal
+                    }
+                ))
+    );
+
+    assert!(
+        question
+            .responses
+            .iter()
+            .any(|response| response.answer.as_ref() == "Approve"
+                && response.value == 39
+                && matches!(
+                    response.demographic,
+                    Demographic::EducationLevel {
+                        education_level: EducationLevel::CollegeGrad
+                    }
+                ))
+    );
+}
+
+#[test]
+fn parses_cbs_title_suffix_for_stem_questions() {
+    let page = "\
+CBSAdults Newsin the U.S. Poll - May 13-15, 2026
+3A. Trump Issue Approval - The economy
+Do you approve or disapprove of the way Donald Trump is handling...
+Gender Age Ideology
+Total Male Female Under 30 30-44 45-64 65+ Liberal Moderate Conservative
+Approve 33% 37% 28% 30% 27% 35% 38% 6% 23% 71%
+Disapprove 67% 63% 72% 70% 73% 65% 62% 94% 77% 29%
+Totals 100% 100% 100% 100% 100% 100% 100% 100% 100% 100%
+Weighted N (2,061) (992) (1,069) (415) (524) (680) (441) (557) (642) (641)
+";
+
+    let question = parse_page(page).unwrap();
+
+    assert_eq!(
+        question.text,
+        "Do you approve or disapprove of the way Donald Trump is handling The economy"
+    );
+    assert_eq!(question.responses.len(), 20);
 }
 
 #[test]

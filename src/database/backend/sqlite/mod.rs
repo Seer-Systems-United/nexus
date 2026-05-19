@@ -147,6 +147,15 @@ impl BackendTrait for SqliteBackend {
         responses::get_responses(&mut self.conn.borrow_mut(), filters)
     }
 
+    #[instrument(skip(self, source_ids))]
+    fn get_source_names_by_ids(
+        &self,
+        source_ids: Vec<uuid::Uuid>,
+    ) -> Result<Vec<String>, ExpressionError> {
+        debug!(count = source_ids.len(), "Getting source names by IDs");
+        source::source_names_by_ids(&mut self.conn.borrow_mut(), &source_ids)
+    }
+
     #[instrument(skip(self, source_name, poll))]
     fn save_poll(
         &self,

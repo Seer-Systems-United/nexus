@@ -43,6 +43,9 @@ impl ColumnSpec {
             "Black" => Self::Black,
             "Asian" => Self::Asian,
             "Hispanic" => Self::Hispanic,
+            "Liberal" => Self::Lib,
+            "Moderate" => Self::Mod,
+            "Conservative" => Self::Con,
             "18-29" => Self::Age18To29,
             "30-44" => Self::Age30To44,
             "45-64" => Self::Age45To64,
@@ -72,10 +75,16 @@ pub(super) fn parse_column_specs(line: &str) -> Option<Vec<ColumnSpec>> {
     labels.push(ColumnSpec::Total);
 
     while let Some(token) = tokens.next() {
-        if token == "No" && tokens.peek().copied() == Some("degree") {
+        if token == "Under" && tokens.peek().copied() == Some("30") {
+            labels.push(ColumnSpec::Age18To29);
+            tokens.next();
+        } else if token == "No" && matches!(tokens.peek().copied(), Some("Degree" | "degree")) {
             labels.push(ColumnSpec::NoDegree);
             tokens.next();
         } else if token == "College" && tokens.peek().copied() == Some("grad") {
+            labels.push(ColumnSpec::CollegeGrad);
+            tokens.next();
+        } else if token == "4yr" && tokens.peek().copied() == Some("Degree+") {
             labels.push(ColumnSpec::CollegeGrad);
             tokens.next();
         } else {

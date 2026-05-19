@@ -54,6 +54,16 @@ impl BackendTrait for PostgresBackend {
         responses::get_responses(filters)
     }
 
+    #[instrument(skip(self, source_ids))]
+    fn get_source_names_by_ids(
+        &self,
+        source_ids: Vec<uuid::Uuid>,
+    ) -> Result<Vec<String>, ExpressionError> {
+        trace!(count = source_ids.len(), "Getting source names by IDs");
+        let mut conn = connection::get_connection();
+        source::source_names_by_ids(&mut conn, &source_ids)
+    }
+
     #[instrument(skip(self, poll))]
     fn save_poll(
         &self,

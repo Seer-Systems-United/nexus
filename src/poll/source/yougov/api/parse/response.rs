@@ -98,6 +98,8 @@ fn is_response_artifact_line(line: &str) -> bool {
         "Sex Race"
             | "Age"
             | "Education"
+            | "Gender Age Ideology"
+            | "Party ID Race White by Education"
             | "Reg"
             | "2024 Vote"
             | "Ideology"
