@@ -3,8 +3,8 @@ use tracing::trace;
 
 use crate::{
     database::{
-        person::DatabasePerson, poll::DatabasePoll, question::DatabaseQuestion,
-        response::DatabaseResponse,
+        demographic::DatabaseDemographic, person::DatabasePerson, poll::DatabasePoll,
+        question::DatabaseQuestion, response::DatabaseResponse,
     },
     expr::ExpressionError,
 };
@@ -59,7 +59,7 @@ pub(super) struct SqliteQuestion {
     pub(super) poll_id: String,
 }
 
-#[derive(Debug, Insertable)]
+#[derive(Debug, Queryable, Insertable)]
 #[diesel(table_name = schema::demographics)]
 pub(super) struct SqliteDemographic {
     pub(super) id: String,
@@ -156,6 +156,26 @@ impl From<&DatabaseQuestion> for SqliteQuestion {
             text: question.text.clone(),
             keywords: question.keywords.clone(),
         }
+    }
+}
+
+impl TryFrom<SqliteDemographic> for DatabaseDemographic {
+    type Error = ExpressionError;
+
+    fn try_from(row: SqliteDemographic) -> Result<Self, Self::Error> {
+        trace!(
+            "Converting SqliteDemographic to DatabaseDemographic: {:?}",
+            row
+        );
+        Ok(Self {
+            id: parse_uuid(row.id)?,
+            key: row.key,
+            demographic_type: row.demographic_type,
+            label: row.label,
+            lower_bound: row.lower_bound,
+            upper_bound: row.upper_bound,
+            registered: row.registered,
+        })
     }
 }
 

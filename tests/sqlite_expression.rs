@@ -3,8 +3,8 @@ use std::sync::Arc;
 use chrono::{NaiveDate, TimeZone, Utc};
 use nexus::{
     database::{
-        BackendTrait, poll::DatabasePoll, question::DatabaseQuestion, response::DatabaseResponse,
-        sqlite::SqliteBackend,
+        BackendTrait, demographic::DatabaseDemographic, poll::DatabasePoll,
+        question::DatabaseQuestion, response::DatabaseResponse, sqlite::SqliteBackend,
     },
     expr::get::get,
     poll::{
@@ -66,6 +66,23 @@ pub fn test_sqlite_store_executes_local_responses_expression() {
         .unwrap();
 
     assert_eq!(results, vec![response]);
+
+    let demographics = store
+        .get_demographics_by_ids(vec![demographic_id])
+        .expect("demographic lookup should succeed");
+
+    assert_eq!(
+        demographics,
+        vec![DatabaseDemographic {
+            id: demographic_id,
+            key: "all".to_string(),
+            demographic_type: "all".to_string(),
+            label: None,
+            lower_bound: None,
+            upper_bound: None,
+            registered: None,
+        }]
+    );
 }
 
 #[test]

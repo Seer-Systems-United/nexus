@@ -1,8 +1,11 @@
 use std::collections::HashSet;
 
-use crate::default_backend;
+use crate::{database::BackendTrait, default_backend};
 use crate::{
-    database::{poll::DatabasePoll, question::DatabaseQuestion, response::DatabaseResponse},
+    database::{
+        demographic::DatabaseDemographic, poll::DatabasePoll, question::DatabaseQuestion,
+        response::DatabaseResponse,
+    },
     expr::{
         extensions::{questions::DatabaseQuestionExt, responses::DatabaseResponseExt},
         get::get,
@@ -27,6 +30,27 @@ impl DatabaseResponseExt for Vec<DatabaseResponse> {
         }
 
         answers
+    }
+
+    #[instrument(skip(self))]
+    fn get_demographics(&self) -> Vec<DatabaseDemographic> {
+        info!("Fetching demographics for {} responses", self.len());
+        let demographic_ids: HashSet<uuid::Uuid> = self
+            .iter()
+            .map(|response| response.demographic_id)
+            .collect();
+
+        let backend = default_backend().unwrap_or_else(|err| {
+            error!(error = ?err, "Failed to retrieve default backend");
+            panic!("Failed to retrieve default backend: {:?}", err);
+        });
+
+        backend
+            .get_demographics_by_ids(demographic_ids.into_iter().collect())
+            .unwrap_or_else(|err| {
+                error!(error = ?err, "Failed to execute demographic fetch");
+                panic!("Failed to execute demographic fetch: {:?}", err);
+            })
     }
 
     #[instrument(skip(self))]

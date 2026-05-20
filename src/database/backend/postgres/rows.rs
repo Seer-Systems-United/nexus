@@ -1,7 +1,10 @@
 use diesel::Queryable;
 use tracing::trace;
 
-use crate::database::{person::DatabasePerson, poll::DatabasePoll, response::DatabaseResponse};
+use crate::database::{
+    demographic::DatabaseDemographic, person::DatabasePerson, poll::DatabasePoll,
+    response::DatabaseResponse,
+};
 
 #[derive(Queryable)]
 pub(super) struct PersonRow {
@@ -27,6 +30,17 @@ pub(super) struct ResponseRow {
     unit_id: uuid::Uuid,
     answer: String,
     value: i32,
+}
+
+#[derive(Queryable)]
+pub(super) struct DemographicRow {
+    id: uuid::Uuid,
+    key: String,
+    demographic_type: String,
+    label: Option<String>,
+    lower_bound: Option<i32>,
+    upper_bound: Option<i32>,
+    registered: Option<bool>,
 }
 
 impl From<PersonRow> for DatabasePerson {
@@ -63,6 +77,21 @@ impl From<ResponseRow> for DatabaseResponse {
             unit_id: row.unit_id,
             answer: row.answer,
             value: row.value,
+        }
+    }
+}
+
+impl From<DemographicRow> for DatabaseDemographic {
+    fn from(row: DemographicRow) -> Self {
+        trace!(demographic_id = %row.id, "Converting DemographicRow to DatabaseDemographic");
+        Self {
+            id: row.id,
+            key: row.key,
+            demographic_type: row.demographic_type,
+            label: row.label,
+            lower_bound: row.lower_bound,
+            upper_bound: row.upper_bound,
+            registered: row.registered,
         }
     }
 }

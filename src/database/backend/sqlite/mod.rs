@@ -5,12 +5,13 @@ use tracing::{debug, info, instrument};
 
 use crate::{
     database::{
-        BackendTrait, person::DatabasePerson, poll::DatabasePoll, question::DatabaseQuestion,
-        response::DatabaseResponse,
+        BackendTrait, demographic::DatabaseDemographic, person::DatabasePerson, poll::DatabasePoll,
+        question::DatabaseQuestion, response::DatabaseResponse,
     },
     expr::{ExpressionError, ops::Filter},
 };
 
+mod demographics;
 mod insert;
 mod people;
 mod polls;
@@ -154,6 +155,15 @@ impl BackendTrait for SqliteBackend {
     ) -> Result<Vec<String>, ExpressionError> {
         debug!(count = source_ids.len(), "Getting source names by IDs");
         source::source_names_by_ids(&mut self.conn.borrow_mut(), &source_ids)
+    }
+
+    #[instrument(skip(self, demographic_ids))]
+    fn get_demographics_by_ids(
+        &self,
+        demographic_ids: Vec<uuid::Uuid>,
+    ) -> Result<Vec<DatabaseDemographic>, ExpressionError> {
+        debug!(count = demographic_ids.len(), "Getting demographics by IDs");
+        demographics::demographics_by_ids(&mut self.conn.borrow_mut(), &demographic_ids)
     }
 
     #[instrument(skip(self, source_name, poll))]

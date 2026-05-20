@@ -2,8 +2,8 @@ use chrono::{DateTime, Utc};
 
 use crate::{
     database::{
-        person::DatabasePerson, poll::DatabasePoll, question::DatabaseQuestion,
-        response::DatabaseResponse,
+        demographic::DatabaseDemographic, person::DatabasePerson, poll::DatabasePoll,
+        question::DatabaseQuestion, response::DatabaseResponse,
     },
     expr::{ExpressionError, ops::Filter},
     poll::Poll,
@@ -22,6 +22,11 @@ pub trait BackendTrait {
         &self,
         source_ids: Vec<uuid::Uuid>,
     ) -> Result<Vec<String>, ExpressionError>;
+
+    fn get_demographics_by_ids(
+        &self,
+        demographic_ids: Vec<uuid::Uuid>,
+    ) -> Result<Vec<DatabaseDemographic>, ExpressionError>;
 
     fn save_poll(&self, source_name: &str, poll: &Poll) -> Result<(), ExpressionError>;
 

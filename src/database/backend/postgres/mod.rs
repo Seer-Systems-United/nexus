@@ -1,4 +1,5 @@
 mod connection;
+mod demographics;
 mod people;
 mod polls;
 mod questions;
@@ -13,8 +14,8 @@ use tracing::{debug, info, instrument, trace};
 
 use crate::{
     database::{
-        BackendTrait, person::DatabasePerson, poll::DatabasePoll, question::DatabaseQuestion,
-        response::DatabaseResponse,
+        BackendTrait, demographic::DatabaseDemographic, person::DatabasePerson, poll::DatabasePoll,
+        question::DatabaseQuestion, response::DatabaseResponse,
     },
     expr::{ExpressionError, ops::Filter},
 };
@@ -62,6 +63,16 @@ impl BackendTrait for PostgresBackend {
         trace!(count = source_ids.len(), "Getting source names by IDs");
         let mut conn = connection::get_connection();
         source::source_names_by_ids(&mut conn, &source_ids)
+    }
+
+    #[instrument(skip(self, demographic_ids))]
+    fn get_demographics_by_ids(
+        &self,
+        demographic_ids: Vec<uuid::Uuid>,
+    ) -> Result<Vec<DatabaseDemographic>, ExpressionError> {
+        trace!(count = demographic_ids.len(), "Getting demographics by IDs");
+        let mut conn = connection::get_connection();
+        demographics::demographics_by_ids(&mut conn, &demographic_ids)
     }
 
     #[instrument(skip(self, poll))]
