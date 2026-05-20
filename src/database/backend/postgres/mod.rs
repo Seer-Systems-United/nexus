@@ -3,6 +3,7 @@ mod demographics;
 mod people;
 mod polls;
 mod questions;
+mod response_units;
 mod responses;
 mod rows;
 mod save;
@@ -16,6 +17,7 @@ use crate::{
     database::{
         BackendTrait, demographic::DatabaseDemographic, person::DatabasePerson, poll::DatabasePoll,
         question::DatabaseQuestion, response::DatabaseResponse,
+        response_unit::DatabaseResponseUnit,
     },
     expr::{ExpressionError, ops::Filter},
 };
@@ -73,6 +75,16 @@ impl BackendTrait for PostgresBackend {
         trace!(count = demographic_ids.len(), "Getting demographics by IDs");
         let mut conn = connection::get_connection();
         demographics::demographics_by_ids(&mut conn, &demographic_ids)
+    }
+
+    #[instrument(skip(self, unit_ids))]
+    fn get_response_units_by_ids(
+        &self,
+        unit_ids: Vec<uuid::Uuid>,
+    ) -> Result<Vec<DatabaseResponseUnit>, ExpressionError> {
+        trace!(count = unit_ids.len(), "Getting response units by IDs");
+        let mut conn = connection::get_connection();
+        response_units::response_units_by_ids(&mut conn, &unit_ids)
     }
 
     #[instrument(skip(self, poll))]

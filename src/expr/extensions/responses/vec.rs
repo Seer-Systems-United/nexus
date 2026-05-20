@@ -4,7 +4,7 @@ use crate::{database::BackendTrait, default_backend};
 use crate::{
     database::{
         demographic::DatabaseDemographic, poll::DatabasePoll, question::DatabaseQuestion,
-        response::DatabaseResponse,
+        response::DatabaseResponse, response_unit::DatabaseResponseUnit,
     },
     expr::{
         extensions::{questions::DatabaseQuestionExt, responses::DatabaseResponseExt},
@@ -50,6 +50,24 @@ impl DatabaseResponseExt for Vec<DatabaseResponse> {
             .unwrap_or_else(|err| {
                 error!(error = ?err, "Failed to execute demographic fetch");
                 panic!("Failed to execute demographic fetch: {:?}", err);
+            })
+    }
+
+    #[instrument(skip(self))]
+    fn get_units(&self) -> Vec<DatabaseResponseUnit> {
+        info!("Fetching response units for {} responses", self.len());
+        let unit_ids: HashSet<uuid::Uuid> = self.iter().map(|response| response.unit_id).collect();
+
+        let backend = default_backend().unwrap_or_else(|err| {
+            error!(error = ?err, "Failed to retrieve default backend");
+            panic!("Failed to retrieve default backend: {:?}", err);
+        });
+
+        backend
+            .get_response_units_by_ids(unit_ids.into_iter().collect())
+            .unwrap_or_else(|err| {
+                error!(error = ?err, "Failed to execute response unit fetch");
+                panic!("Failed to execute response unit fetch: {:?}", err);
             })
     }
 

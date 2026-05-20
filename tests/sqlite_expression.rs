@@ -4,7 +4,8 @@ use chrono::{NaiveDate, TimeZone, Utc};
 use nexus::{
     database::{
         BackendTrait, demographic::DatabaseDemographic, poll::DatabasePoll,
-        question::DatabaseQuestion, response::DatabaseResponse, sqlite::SqliteBackend,
+        question::DatabaseQuestion, response::DatabaseResponse,
+        response_unit::DatabaseResponseUnit, sqlite::SqliteBackend,
     },
     expr::get::get,
     poll::{
@@ -81,6 +82,18 @@ pub fn test_sqlite_store_executes_local_responses_expression() {
             lower_bound: None,
             upper_bound: None,
             registered: None,
+        }]
+    );
+
+    let units = store
+        .get_response_units_by_ids(vec![unit_id])
+        .expect("response unit lookup should succeed");
+
+    assert_eq!(
+        units,
+        vec![DatabaseResponseUnit {
+            id: unit_id,
+            name: "percent".to_string(),
         }]
     );
 }

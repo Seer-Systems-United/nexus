@@ -4,6 +4,7 @@ use crate::{
     database::{
         demographic::DatabaseDemographic, person::DatabasePerson, poll::DatabasePoll,
         question::DatabaseQuestion, response::DatabaseResponse,
+        response_unit::DatabaseResponseUnit,
     },
     expr::{ExpressionError, ops::Filter},
     poll::Poll,
@@ -27,6 +28,11 @@ pub trait BackendTrait {
         &self,
         demographic_ids: Vec<uuid::Uuid>,
     ) -> Result<Vec<DatabaseDemographic>, ExpressionError>;
+
+    fn get_response_units_by_ids(
+        &self,
+        unit_ids: Vec<uuid::Uuid>,
+    ) -> Result<Vec<DatabaseResponseUnit>, ExpressionError>;
 
     fn save_poll(&self, source_name: &str, poll: &Poll) -> Result<(), ExpressionError>;
 

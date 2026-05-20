@@ -5,6 +5,7 @@ use crate::{
     database::{
         demographic::DatabaseDemographic, person::DatabasePerson, poll::DatabasePoll,
         question::DatabaseQuestion, response::DatabaseResponse,
+        response_unit::DatabaseResponseUnit,
     },
     expr::ExpressionError,
 };
@@ -71,7 +72,7 @@ pub(super) struct SqliteDemographic {
     pub(super) registered: Option<bool>,
 }
 
-#[derive(Debug, Insertable)]
+#[derive(Debug, Queryable, Insertable)]
 #[diesel(table_name = schema::response_units)]
 pub(super) struct SqliteResponseUnit {
     pub(super) id: String,
@@ -175,6 +176,21 @@ impl TryFrom<SqliteDemographic> for DatabaseDemographic {
             lower_bound: row.lower_bound,
             upper_bound: row.upper_bound,
             registered: row.registered,
+        })
+    }
+}
+
+impl TryFrom<SqliteResponseUnit> for DatabaseResponseUnit {
+    type Error = ExpressionError;
+
+    fn try_from(row: SqliteResponseUnit) -> Result<Self, Self::Error> {
+        trace!(
+            "Converting SqliteResponseUnit to DatabaseResponseUnit: {:?}",
+            row
+        );
+        Ok(Self {
+            id: parse_uuid(row.id)?,
+            name: row.name,
         })
     }
 }

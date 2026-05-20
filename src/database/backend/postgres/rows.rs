@@ -3,7 +3,7 @@ use tracing::trace;
 
 use crate::database::{
     demographic::DatabaseDemographic, person::DatabasePerson, poll::DatabasePoll,
-    response::DatabaseResponse,
+    response::DatabaseResponse, response_unit::DatabaseResponseUnit,
 };
 
 #[derive(Queryable)]
@@ -41,6 +41,12 @@ pub(super) struct DemographicRow {
     lower_bound: Option<i32>,
     upper_bound: Option<i32>,
     registered: Option<bool>,
+}
+
+#[derive(Queryable)]
+pub(super) struct ResponseUnitRow {
+    id: uuid::Uuid,
+    name: String,
 }
 
 impl From<PersonRow> for DatabasePerson {
@@ -92,6 +98,16 @@ impl From<DemographicRow> for DatabaseDemographic {
             lower_bound: row.lower_bound,
             upper_bound: row.upper_bound,
             registered: row.registered,
+        }
+    }
+}
+
+impl From<ResponseUnitRow> for DatabaseResponseUnit {
+    fn from(row: ResponseUnitRow) -> Self {
+        trace!(unit_id = %row.id, "Converting ResponseUnitRow to DatabaseResponseUnit");
+        Self {
+            id: row.id,
+            name: row.name,
         }
     }
 }

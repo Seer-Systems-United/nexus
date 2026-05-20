@@ -7,6 +7,7 @@ use crate::{
     database::{
         BackendTrait, demographic::DatabaseDemographic, person::DatabasePerson, poll::DatabasePoll,
         question::DatabaseQuestion, response::DatabaseResponse,
+        response_unit::DatabaseResponseUnit,
     },
     expr::{ExpressionError, ops::Filter},
 };
@@ -17,6 +18,7 @@ mod people;
 mod polls;
 mod question_search;
 mod questions;
+mod response_units;
 mod responses;
 mod rows;
 mod save;
@@ -164,6 +166,15 @@ impl BackendTrait for SqliteBackend {
     ) -> Result<Vec<DatabaseDemographic>, ExpressionError> {
         debug!(count = demographic_ids.len(), "Getting demographics by IDs");
         demographics::demographics_by_ids(&mut self.conn.borrow_mut(), &demographic_ids)
+    }
+
+    #[instrument(skip(self, unit_ids))]
+    fn get_response_units_by_ids(
+        &self,
+        unit_ids: Vec<uuid::Uuid>,
+    ) -> Result<Vec<DatabaseResponseUnit>, ExpressionError> {
+        debug!(count = unit_ids.len(), "Getting response units by IDs");
+        response_units::response_units_by_ids(&mut self.conn.borrow_mut(), &unit_ids)
     }
 
     #[instrument(skip(self, source_name, poll))]
