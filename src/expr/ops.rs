@@ -1,4 +1,7 @@
-use crate::{expr::traits::TableTrait, poll::source::yougov::YouGov};
+use crate::{
+    expr::traits::TableTrait,
+    poll::source::{emerson::Emerson, yougov::YouGov},
+};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Operation {
@@ -84,4 +87,12 @@ impl SourceFilter for YouGov {
 
 impl PollSourceFilter for YouGov {
     const SOURCE_NAME: &'static str = YouGov::SOURCE_NAME;
+}
+
+impl SourceFilter for Emerson {
+    const SOURCE_NAME: &'static str = Emerson::SOURCE_NAME;
+}
+
+impl PollSourceFilter for Emerson {
+    const SOURCE_NAME: &'static str = Emerson::SOURCE_NAME;
 }

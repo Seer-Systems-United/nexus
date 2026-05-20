@@ -1,5 +1,6 @@
-use crate::poll::question::Question;
+use crate::poll::{location::PollLocation, question::Question};
 
+pub mod location;
 pub mod question;
 pub mod response;
 pub mod source;
@@ -8,4 +9,5 @@ pub mod source;
 pub struct Poll {
     pub questions: Vec<Question>,
     pub published_timestamp: chrono::DateTime<chrono::Utc>,
+    pub location: PollLocation,
 }

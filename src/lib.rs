@@ -2,7 +2,7 @@ use crate::{
     database::{BackendTrait, DefaultBackend, default_backend},
     expr::ExpressionError,
     expr::ops::PollSourceFilter,
-    poll::source::{traits::PollSource, yougov::YouGov},
+    poll::source::{emerson::Emerson, traits::PollSource, yougov::YouGov},
 };
 use tracing::warn;
 
@@ -24,7 +24,9 @@ impl Nexus<DefaultBackend> {
 
     pub fn force_update() -> Result<(), ExpressionError> {
         let backend = default_backend()?;
-        Self::from_backend(backend).update_source::<YouGov>()
+        let nexus = Self::from_backend(backend);
+        nexus.update_source::<YouGov>()?;
+        nexus.update_source::<Emerson>()
     }
 }
 
@@ -32,6 +34,7 @@ impl<B: BackendTrait> Nexus<B> {
     pub fn with_backend(backend: B) -> Result<Self, ExpressionError> {
         let nexus = Self { backend };
         nexus.update_source::<YouGov>()?;
+        nexus.update_source::<Emerson>()?;
         Ok(nexus)
     }
 

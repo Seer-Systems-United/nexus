@@ -2,6 +2,7 @@ pub mod api;
 
 use crate::poll::{
     Poll,
+    location::PollLocation,
     source::{traits::PollSource, yougov::api::has_new_poll},
 };
 
@@ -22,6 +23,7 @@ impl PollSource for YouGov {
         Poll {
             questions,
             published_timestamp,
+            location: PollLocation::National,
         }
     }
 }

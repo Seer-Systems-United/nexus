@@ -21,6 +21,18 @@ diesel::table! {
 }
 
 diesel::table! {
+    poll_locations (id) {
+        id -> Text,
+        poll_id -> Text,
+        location_type -> Text,
+        country -> Text,
+        state -> Nullable<Text>,
+        county -> Nullable<Text>,
+        label -> Nullable<Text>,
+    }
+}
+
+diesel::table! {
     polls (id) {
         id -> Text,
         source_id -> Text,
@@ -65,6 +77,7 @@ diesel::table! {
 diesel::allow_tables_to_appear_in_same_query!(
     demographics,
     people,
+    poll_locations,
     polls,
     questions,
     response_units,

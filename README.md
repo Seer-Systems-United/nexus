@@ -6,7 +6,7 @@ I plan to for this library to be a libary to pull polling data form public sourc
 
 ## Polling Sources
 - [x] YouGov USA
-- [ ] Emerson College
+- [x] Emerson College
 - [ ] Ipsos
 - [ ] Gallup
 - [ ] Marist College

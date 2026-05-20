@@ -49,6 +49,7 @@ mod tests {
     use crate::poll::source::yougov::api::latest_survey;
 
     #[test]
+    #[ignore = "hits YouGov over the network"]
     fn test_get_latest_surveys() {
         let response = get_latest_surveys();
         assert!(response.hits > 0);
@@ -56,6 +57,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "hits YouGov and downloads a PDF over the network"]
     fn test_parse_latest_survey() {
         // This test will just check that we can call the function without panicking.
         latest_survey();

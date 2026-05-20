@@ -29,6 +29,16 @@ pub(super) fn setup_schema(conn: &mut SqliteConnection) -> Result<(), Expression
             UNIQUE (source_id, published_timestamp)
         );
 
+        CREATE TABLE IF NOT EXISTS poll_locations (
+            id TEXT PRIMARY KEY,
+            poll_id TEXT NOT NULL UNIQUE REFERENCES polls(id) ON DELETE CASCADE,
+            location_type TEXT NOT NULL,
+            country TEXT NOT NULL,
+            state TEXT,
+            county TEXT,
+            label TEXT
+        );
+
         CREATE TABLE IF NOT EXISTS questions (
             id TEXT PRIMARY KEY,
             text TEXT NOT NULL,
@@ -71,6 +81,7 @@ pub(super) fn setup_schema(conn: &mut SqliteConnection) -> Result<(), Expression
 
         CREATE INDEX IF NOT EXISTS responses_question_id_idx ON responses (question_id);
         CREATE INDEX IF NOT EXISTS questions_poll_id_idx ON questions (poll_id);
+        CREATE INDEX IF NOT EXISTS poll_locations_poll_id_idx ON poll_locations (poll_id);
 
         INSERT INTO questions_fts(rowid, id, text, keywords)
         SELECT rowid, id, text, keywords

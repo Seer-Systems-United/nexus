@@ -10,6 +10,7 @@ use nexus::{
     expr::get::get,
     poll::{
         Poll,
+        location::PollLocation,
         question::Question,
         response::{Response, demographic::Demographic, unit::Unit},
         source::yougov::YouGov,
@@ -156,6 +157,7 @@ pub fn test_sqlite_store_saves_poll_graph_idempotently() {
     let store = SqliteBackend::in_memory().unwrap();
     let poll = Poll {
         published_timestamp: Utc.with_ymd_and_hms(2026, 4, 1, 12, 0, 0).unwrap(),
+        location: PollLocation::National,
         questions: vec![Question::new(
             "Do you approve?",
             vec![Response {

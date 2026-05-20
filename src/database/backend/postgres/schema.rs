@@ -32,6 +32,21 @@ diesel::table! {
     use diesel::sql_types::*;
     use diesel_full_text_search::Tsvector;
 
+    poll_locations (id) {
+        id -> Uuid,
+        poll_id -> Uuid,
+        location_type -> Varchar,
+        country -> Varchar,
+        state -> Nullable<Varchar>,
+        county -> Nullable<Varchar>,
+        label -> Nullable<Varchar>,
+    }
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
+    use diesel_full_text_search::Tsvector;
+
     polls (id) {
         id -> Uuid,
         source_id -> Uuid,
@@ -86,6 +101,7 @@ diesel::table! {
 }
 
 diesel::joinable!(polls -> sources (source_id));
+diesel::joinable!(poll_locations -> polls (poll_id));
 diesel::joinable!(questions -> polls (poll_id));
 diesel::joinable!(responses -> demographics (demographic_id));
 diesel::joinable!(responses -> questions (question_id));
@@ -94,6 +110,7 @@ diesel::joinable!(responses -> response_units (unit_id));
 diesel::allow_tables_to_appear_in_same_query!(
     demographics,
     people,
+    poll_locations,
     polls,
     questions,
     response_units,

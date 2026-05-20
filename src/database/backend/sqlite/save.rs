@@ -4,7 +4,7 @@ use tracing::{debug, instrument, trace};
 use crate::{
     database::common::domain::{demographic_record, unit_name},
     expr::ExpressionError,
-    poll::{Poll, response::Response},
+    poll::{Poll, location::PollLocation, response::Response},
 };
 
 use super::{question_search::upsert_question_fts, schema, util::format_datetime};
@@ -24,6 +24,7 @@ pub(super) fn save_poll(
     conn.transaction(|conn| {
         let source_id = source_id(conn, source_name)?;
         let poll_id = poll_id(conn, &source_id, poll)?;
+        save_poll_location(conn, &poll_id, &poll.location)?;
 
         for question in &poll.questions {
             let question_id = question_id(conn, &poll_id, &question.text)?;
@@ -86,6 +87,39 @@ fn poll_id(
         .map_err(ExpressionError::from)
 }
 
+#[instrument(skip(conn, location))]
+fn save_poll_location(
+    conn: &mut SqliteConnection,
+    poll_id: &str,
+    location: &PollLocation,
+) -> Result<(), ExpressionError> {
+    let id = uuid::Uuid::new_v4().to_string();
+    let record = location_record(location);
+
+    diesel::insert_into(schema::poll_locations::table)
+        .values((
+            schema::poll_locations::id.eq(id),
+            schema::poll_locations::poll_id.eq(poll_id),
+            schema::poll_locations::location_type.eq(record.location_type),
+            schema::poll_locations::country.eq(record.country),
+            schema::poll_locations::state.eq(record.state),
+            schema::poll_locations::county.eq(record.county),
+            schema::poll_locations::label.eq(record.label),
+        ))
+        .on_conflict(schema::poll_locations::poll_id)
+        .do_update()
+        .set((
+            schema::poll_locations::location_type.eq(record.location_type),
+            schema::poll_locations::country.eq(record.country),
+            schema::poll_locations::state.eq(record.state),
+            schema::poll_locations::county.eq(record.county),
+            schema::poll_locations::label.eq(record.label),
+        ))
+        .execute(conn)?;
+
+    Ok(())
+}
+
 #[instrument(skip(conn))]
 fn question_id(
     conn: &mut SqliteConnection,
@@ -116,6 +150,47 @@ fn question_id(
     upsert_question_fts(conn, &question_id, text, text)?;
 
     Ok(question_id)
+}
+
+struct LocationRecord<'a> {
+    location_type: &'static str,
+    country: &'static str,
+    state: Option<&'a str>,
+    county: Option<&'a str>,
+    label: Option<&'a str>,
+}
+
+fn location_record(location: &PollLocation) -> LocationRecord<'_> {
+    match location {
+        PollLocation::National => LocationRecord {
+            location_type: "national",
+            country: "US",
+            state: None,
+            county: None,
+            label: Some("United States"),
+        },
+        PollLocation::State { state } => LocationRecord {
+            location_type: "state",
+            country: "US",
+            state: Some(state.as_str()),
+            county: None,
+            label: Some(state.as_str()),
+        },
+        PollLocation::County { state, county } => LocationRecord {
+            location_type: "county",
+            country: "US",
+            state: Some(state.as_str()),
+            county: Some(county.as_str()),
+            label: Some(county.as_str()),
+        },
+        PollLocation::Other { label } => LocationRecord {
+            location_type: "other",
+            country: "US",
+            state: None,
+            county: None,
+            label: Some(label.as_str()),
+        },
+    }
 }
 
 #[instrument(skip(conn, response))]
